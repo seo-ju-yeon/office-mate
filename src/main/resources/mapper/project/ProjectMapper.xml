@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.project.mapper.ProjectMapper">
+
+    <select id="selectProjectsWithDetails" resultType="office_mate_2605.project.domain.ProjectJoinResult">
+        SELECT p.id,
+               p.name,
+               p.description,
+               p.status,
+               COALESCE(
+                       (SELECT ROUND(
+                                       CAST(COUNT(CASE WHEN t.status = 'DONE' THEN 1 END) AS NUMERIC) /
+                                       CAST(NULLIF(COUNT(*), 0) AS NUMERIC) * 100
+                               )
+                        FROM project_task t
+                        WHERE t.project_id = p.id), 0
+               )           AS progressRate,
+               p.starts_on AS startsOn,
+               p.ends_on   AS endsOn,
+               COALESCE(e.name, '담당자 없음') AS managerName,
+               COALESCE(d.name, '부서 미지정') AS departmentName
+        FROM project p
+                 LEFT JOIN employee e ON p.manager_no = e.employee_no AND e.status = 'ACTIVE'
+                 LEFT JOIN departments d ON CAST(p.owner_department AS TEXT) = CAST(d.code AS TEXT)
+        WHERE p.status IS NULL OR p.status != 'CANCELED'
+        ORDER BY p.id DESC
+    </select>
+
+    <insert id="insertProjectMember">
+        INSERT INTO project_member (project_id, employee_no, joined_at)
+        VALUES (#{projectId}, #{employeeNo}, NOW())
+    </insert>
+
+    <select id="selectProjectMemberDetails" resultType="office_mate_2605.project.dto.ProjectMemberResponseDTO">
+        SELECT
+            pm.project_id                      AS projectId,
+            pm.employee_no                     AS employeeNo,
+            e.name                             AS employeeName,
+            e.department                       AS departmentName,
+            CAST(pm.joined_at AS TIMESTAMP)    AS joinedAt
+        FROM project_member pm
+                 INNER JOIN employee e ON pm.employee_no = e.employee_no AND e.status = 'ACTIVE'
+        WHERE pm.project_id = #{projectId}
+        ORDER BY pm.joined_at DESC
+    </select>
+
+    <select id="selectAllEmployeesWithDept" resultType="office_mate_2605.project.dto.EmployeeResponseDTO">
+        SELECT
+        e.employee_no    AS employeeNo,
+        e.name           AS employeeName,
+        e.department     AS departmentCode,
+        d.name           AS departmentName
+        FROM
+        employee e
+        LEFT JOIN
+        departments d ON CAST(e.department AS TEXT) = CAST(d.code AS TEXT)
+        <where>
+            e.status = 'ACTIVE'
+            <if test="department != null and department != ''">
+                AND CAST(e.department AS TEXT) = #{department}
+            </if>
+        </where>
+        ORDER BY
+        e.name ASC
+    </select>
+
+    <select id="selectTasksWithAssignee" resultType="office_mate_2605.project.dto.TaskResponseDTO">
+        SELECT
+            t.id,
+            t.project_id AS projectId,
+            t.title,
+            t.description,
+            t.status,
+            t.progress_rate AS progressRate,
+            t.priority,
+            t.is_critical AS isCritical,
+            t.due_on AS dueOn,
+            e.name AS assigneeName,
+            d.name AS departmentName
+        FROM project_task t
+                 LEFT JOIN employee e ON t.assignee_no = e.employee_no AND e.status = 'ACTIVE'
+                 LEFT JOIN departments d ON CAST(e.department AS TEXT) = CAST(d.code AS TEXT)
+        WHERE t.project_id = #{projectId}
+        ORDER BY t.is_critical DESC, t.due_on ASC
+    </select>
+
+    <select id="selectProjectsByEmpNo" resultType="office_mate_2605.project.dto.ProjectResponseDTO">
+        SELECT
+            p.id     AS id,
+            p.name   AS name,
+            p.status AS status
+        FROM
+            project p
+                INNER JOIN
+            project_member pm ON p.id = pm.project_id
+        WHERE
+            pm.employee_no = #{empNo}
+          AND p.status NOT IN ('DONE', 'ON_HOLD', 'CANCELED')
+        ORDER BY
+            p.id DESC
+    </select>
+
+    <select id="selectTaskByIdWithAssignee" resultType="office_mate_2605.project.dto.TaskResponseDTO">
+        SELECT
+            t.id,
+            t.project_id AS projectId,
+            t.title,
+            t.description,
+            t.status,
+            t.progress_rate AS progressRate,
+            t.priority,
+            t.is_critical AS isCritical,
+            t.due_on AS dueOn,
+            e.name AS assigneeName,
+            d.name AS departmentName
+        FROM project_task t
+                 LEFT JOIN employee e ON t.assignee_no = e.employee_no AND e.status = 'ACTIVE'
+                 LEFT JOIN departments d ON CAST(e.department AS TEXT) = CAST(d.code AS TEXT)
+        WHERE t.id = #{taskId}
+    </select>
+
+    <select id="selectActiveTasksWithAssignee" resultType="office_mate_2605.project.dto.TaskResponseDTO">
+        SELECT
+            t.id, t.project_id AS projectId, t.title, t.status,
+            t.progress_rate AS progressRate, t.due_on AS dueOn,
+            e.name AS assigneeName
+        FROM project_task t
+                 INNER JOIN project p ON t.project_id = p.id
+                 LEFT JOIN employee e ON t.assignee_no = e.employee_no AND e.status = 'ACTIVE'
+        WHERE t.project_id = #{projectId}
+          AND p.status NOT IN ('ON_HOLD', 'DONE', 'CANCELED')
+        ORDER BY t.due_on ASC
+    </select>
+
+</mapper>

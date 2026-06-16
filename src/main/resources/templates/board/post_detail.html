@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<head>
+    <th:block layout:fragment="head-extra">
+        <link rel="stylesheet" th:href="@{/css/board/post_detail.css}">
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="wrap">
+
+        <!-- 타이틀바 -->
+        <div class="card-topbar">
+            <span class="card-topbar-title" th:text="${post.boardName}">게시판명</span>
+            <a id="btnWrite" href="#" style="display:none;" class="btn-write">+ 글쓰기</a>
+        </div>
+
+        <!-- 게시글 헤더 -->
+        <div class="article-header">
+            <div class="article-tags">
+                <!-- 공지 고정글일 때만 [공지] 태그 노출 -->
+                <span th:if="${post.pinned}" class="tag tag-notice">공지</span>
+            </div>
+            <div class="article-title" th:text="${post.title}">제목</div>
+            <div class="article-info">
+
+                <!-- 작성자 -->
+                <span class="info-item">
+                    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    <span th:text="${post.authorName}">작성자</span>
+                </span>
+
+                <!-- 작성일 -->
+                <span class="info-item">
+                    <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                    <span th:text="${#temporals.format(post.postedAt.withOffsetSameInstant(T(java.time.ZoneOffset).of('+09:00')), 'yyyy.MM.dd HH:mm')}">날짜</span>
+                    <!-- 수정된 글이면 "(수정됨)" 표시 -->
+                    <span th:if="${post.editedAt != null}" class="edited-badge">
+                        (수정자: <span th:text="${post.editorName}"></span>
+                        &nbsp;|&nbsp;
+                        수정됨 <span th:text="${#temporals.format(post.editedAt.withOffsetSameInstant(T(java.time.ZoneOffset).of('+09:00')), 'yyyy.MM.dd HH:mm')}"></span>)
+                    </span>
+
+                    <!-- 조회수 -->
+                <span class="info-item">
+                    <svg class="ic" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span th:text="${post.viewCount}">0</span>
+                </span>
+
+                    <!-- 댓글수  -->
+                <span class="info-item">
+                    <svg class="ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>0</span>
+                </span>
+
+            </div>
+        </div>
+
+        <!-- 본문 -->
+        <!-- th:utext: HTML 태그를 그대로 렌더링. 나중에 에디터 붙이면 필요 -->
+        <div class="article-body" th:utext="${post.content}">본문</div>
+
+        <!-- 첨부파일 목록 (첨부파일이 있을 때만 노출) -->
+        <div class="article-attachments" th:if="${not #lists.isEmpty(post.attachments)}">
+            <span class="attachment-label"
+                  th:text="'첨부파일 (' + ${#lists.size(post.attachments)} + ')'">첨부파일</span>
+            <div class="attachment-list">
+                <div class="attachment-item" th:each="file : ${post.attachments}">
+                    <svg style="width:13px;height:13px;flex-shrink:0;stroke:#1976D2;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;"
+                         viewBox="0 0 24 24">
+                        <path d="M21.44 11.05L12.25 20.24a6 6 0 0 1-8.49-8.49L13.41 2.1a4 4 0 0 1 5.66 5.66L9.41 17.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                    <a th:href="${file.storedPath}"
+                       th:text="${file.originalName}"
+                       download>파일명</a>
+                    <span class="attachment-size"
+                          th:text="'(' + ${#numbers.formatDecimal(file.fileSize / 1024.0, 1, 1)} + ' KB)'"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 버튼 -->
+        <div class="article-actions">
+            <!-- 목록으로 -->
+            <a th:href="${post.boardId == 1} ? @{/board/notice/list} :
+           (${post.boardId == 2} ? @{/board/general/list} : @{/board/project/notice/list})"
+               class="btn-secondary">목록</a>
+
+            <!-- 수정/삭제: JS initButtons()가 권한 확인 후 display 및 href 제어 -->
+            <a id="btnEdit" href="#" style="display:none;" class="btn-write">수정</a>
+            <button id="btnDelete" style="display:none;"
+                    type="button" class="btn-danger"
+                    th:data-post-id="${post.id}"
+                    th:data-board-id="${post.boardId}"
+                    onclick="deletePost(this)">삭제</button>
+        </div>
+
+
+    </div><!-- /wrap -->
+
+    <!-- 댓글 카드 -->
+    <div class="comment-write-box"
+         style="padding: 20px; background: #f9f9f9; border-bottom: 1px solid #eee; max-width: 1200px; margin: 0 auto;">
+        <div style="display: flex; gap: 10px;">
+        <textarea id="commentContent"
+                  style="flex: 1; height: 60px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; resize: none; font-size: 14px;"
+                  placeholder="댓글을 입력하세요."></textarea>
+            <button type="button" onclick="saveComment()"
+                    style="width: 80px; background: #1976D2; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">등록</button>
+        </div>
+    </div>
+
+    <!-- 댓글 목록이 JS로 동적 렌더링되는 컨테이너 -->
+    <div id="commentList" style="max-width: 1200px; margin: 0 auto;"></div>
+
+    <!-- 서버 변수 주입: postId, boardId, authorNo -->
+    <script th:inline="javascript">
+        const postId   = /*[[${post.id}]]*/ 0;
+        const boardId  = /*[[${post.boardId}]]*/ 0;
+        const authorNo = /*[[${post.authorNo}]]*/ '';
+    </script>
+    <script th:src="@{/js/board/post_detail.js}"></script>
+</div>
+</body>
+</html>

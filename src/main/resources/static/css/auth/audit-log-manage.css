@@ -1,0 +1,277 @@
+/* 감사 로그 관리 화면 전체의 기본 글자색을 지정 */
+.audit-log-container {
+    color: #172b4d;
+}
+
+/* 페이지 제목과 CSV 내보내기 버튼을 양쪽 끝에 배치하는 헤더 영역 */
+.audit-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.audit-page-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* 감사 로그 검색 조건을 카드 형태의 그리드로 배치 */
+.audit-filter-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    align-items: end;
+}
+
+.audit-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.audit-filter-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6b778c;
+    text-transform: uppercase;
+}
+
+.audit-filter-group input,
+.audit-filter-group select {
+    padding: 8px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* 조회, 페이지 이동, CSV 내보내기에서 공통으로 사용하는 버튼 */
+.audit-button {
+    background: #0052cc;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.audit-button.secondary {
+    background: #f4f5f7;
+    color: #172b4d;
+    border: 1px solid #dfe1e6;
+}
+
+/* 감사 로그 목록 테이블과 페이지네이션을 감싸는 영역 */
+.audit-table-wrapper {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.audit-table th {
+    background: #fafbfc;
+    padding: 12px;
+    text-align: left;
+    font-size: 12px;
+    color: #6b778c;
+    border-bottom: 2px solid #f4f5f7;
+}
+
+.audit-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f4f5f7;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.audit-table tr:hover {
+    background: #f4f7fb;
+}
+
+/* 감사 액션 타입을 색상으로 구분하는 배지 */
+.audit-badge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.audit-badge.create {
+    background: #36b37e;
+}
+
+.audit-badge.read {
+    background: #0052cc;
+}
+
+.audit-badge.update {
+    background: #ff8b00;
+}
+
+.audit-badge.delete {
+    background: #ff5630;
+}
+
+.audit-badge.login {
+    background: #6554c0;
+}
+
+.audit-badge.login-fail {
+    background: #bf2600;
+}
+
+.audit-badge.logout {
+    background: #6b778c;
+}
+
+.audit-badge.permission {
+    background: #00a3bf;
+}
+
+.audit-badge.ai-request {
+    background: #5243aa;
+}
+
+.audit-badge.export {
+    background: #00875a;
+}
+
+.audit-status-success {
+    color: #36b37e;
+    font-weight: 700;
+}
+
+.audit-status-fail {
+    color: #ff5630;
+    font-weight: 700;
+}
+
+.audit-empty-row {
+    text-align: center;
+    color: #6b778c;
+    cursor: default;
+}
+
+/* 이전/다음 버튼과 현재 페이지 정보를 보여주는 영역 */
+.audit-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border-top: 1px solid #f4f5f7;
+}
+
+.audit-page-info {
+    font-size: 13px;
+    color: #6b778c;
+}
+
+/* 감사 로그 상세 정보를 보여주는 모달 배경 */
+.audit-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    justify-content: center;
+    align-items: center;
+}
+
+.audit-modal-content {
+    background: #ffffff;
+    width: 900px;
+    max-width: calc(100vw - 48px);
+    max-height: 80vh;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.audit-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #dfe1e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.audit-modal-title {
+    margin: 0;
+    font-size: 18px;
+}
+
+.audit-modal-close {
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.audit-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.audit-json-label {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: block;
+    color: #6b778c;
+}
+
+.audit-json-view {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.audit-result-json {
+    color: #a6e22e;
+}
+
+.audit-modal-footer {
+    padding: 20px;
+    border-top: 1px solid #dfe1e6;
+    text-align: right;
+}
+
+/* 작은 화면에서는 헤더와 상세 모달 내용을 세로로 배치 */
+@media (max-width: 800px) {
+    .audit-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .audit-modal-body {
+        grid-template-columns: 1fr;
+    }
+}

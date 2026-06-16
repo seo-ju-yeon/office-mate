@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.board.mapper.PostCommentMapper">
+    <update id="deleteByPostId" parameterType="long">
+        UPDATE post_comment
+        SET deleted_at = NOW()
+        WHERE post_id = #{postId}
+          AND deleted_at IS NULL
+    </update>
+
+    <select id="selectCommentsByPostId" parameterType="long" resultType="office_mate_2605.board.dto.CommentListDTO">
+        SELECT
+            c.id,
+            c.content,
+            c.author_no   AS authorNo,
+            e.name        AS authorName,
+            e.position    AS position,
+            c.posted_at   AS postedAt
+        FROM post_comment c
+                 JOIN employee e ON c.author_no = e.employee_no
+        WHERE c.post_id = #{postId}
+          AND c.deleted_at IS NULL
+        ORDER BY c.posted_at ASC
+    </select>
+</mapper>

@@ -1,0 +1,129 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.14'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+ext {
+    springAiVersion = "1.1.6"
+}
+
+group = 'org.example'
+version = '0.0.1-SNAPSHOT'
+description = 'office_mate_2605'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Database
+    // JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // MyBatis
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
+    // Postgres
+    runtimeOnly 'org.postgresql:postgresql'
+    // ModelMapper, 객체 간의 필드 값을 자동으로 복사해주는 매핑 라이브러리 (Entity ↔ DTO 변환용)
+    // Source: https://mvnrepository.com/artifact/org.modelmapper/modelmapper
+    implementation 'org.modelmapper:modelmapper:3.2.5'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // 동적 query
+    // Querydsl 설정
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+    // Swagger(OpenAPI)를 사용하여 API 명세서를 자동 생성하고 테스트 UI를 제공
+    // Source: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+
+    // Java 객체와 JSON 문자열 간의 상호 변환을 처리하는 구글의 JSON 라이브러리
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // JWT 생성/검증 라이브러리
+    // APILoginSuccessHandler에서 토큰을 만들고, TokenCheckFilter/RefreshTokenFilter에서 토큰을 검증할 때 사용
+    // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
+    implementation 'io.jsonwebtoken:jjwt:0.12.6'
+
+    // Spring Batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
+    // Testing
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // thymeleaf layout
+    // Source: https://mvnrepository.com/artifact/nz.net.ultraq.thymeleaf/thymeleaf-layout-dialect
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.4.0")
+
+    // Java Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // 1. Google API 클라이언트 라이브러리 (필수)
+    implementation 'com.google.api-client:google-api-client:2.0.0'
+
+    // 2. OAuth 인증을 위한 라이브러리 (데스크톱/로컬 테스트용)
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
+
+    // 3. 구글 캘린더 서비스 라이브러리 (필수)
+    implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
+
+    // 4. JSON 파싱을 위한 Jackson 라이브러리 (Google 클라이언트용)
+    implementation 'com.google.http-client:google-http-client-jackson2:1.44.1'
+
+    // Spring Security
+    // 로그인 인증, 비밀번호 BCrypt 검증, API 접근 제어, 테스트용 보안 도구를 제공
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // Thymeleaf 화면에서 로그인 사용자/권한 정보를 사용할 수 있게 도와주는 확장 라이브러리
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    // Security 관련 단위/통합 테스트를 작성할 때 사용하는 테스트 지원 라이브러리
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // WebSocket & STOMP (필요 시 주석해제)
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework:spring-websocket'
+    implementation 'org.springframework:spring-messaging'
+
+    // AI
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:$springAiVersion"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

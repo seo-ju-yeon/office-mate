@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>OfficeMate - 초기 진입 페이지</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Noto+Sans+KR:wght@400;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/intro/landing.css}">
+</head>
+<body>
+
+<!-- 랜딩 페이지의 배경 격자와 마우스 스포트라이트 효과 영역 -->
+<div class="grid-background"></div>
+<div class="spotlight" id="spotlight"></div>
+
+<!-- 서비스 소개 문구와 로그인/대시보드 진입 링크 영역 -->
+<div class="content-wrapper">
+<!--    <div class="status-pill">System Status: Operational</div>-->
+    <div class="status-pill">Built as a Team Portfolio</div>
+    <h1 class="main-title">Office<span>Mate.</span></h1>
+    <p class="description">
+        JWT 인증, 감사 로그, 구글 캘린더, 웹소켓 채팅, 게시판을 하나로 묶고 <br>
+        AI 질의응답으로 팀 협업의 밀도를 높입니다.
+    </p>
+
+    <a th:href="@{/login}" class="nav-btn" id="entry-link">
+        <div class="arrow"></div>
+        <span>GO TO LOGIN</span>
+    </a>
+</div>
+
+<!-- 프로젝트 구성과 핵심 기술을 보여주는 하단 메트릭 영역 -->
+<div class="metrics">
+<!--    <div class="metric-item">-->
+<!--        <span>TEAM</span>-->
+<!--        <b>서주연, 강수현, 박재경, 서민성</b>-->
+<!--    </div>-->
+    <div class="metric-item">
+        <span>AUTH & AUDIT (서주연)</span>
+        <b>SPRING SECURITY · JWT · REDIS · AOP</b>
+    </div>
+    <div class="metric-item">
+        <span>CALENDAR MODULE (강수현)</span>
+        <b>GOOGLE API · TEAM SHARING</b>
+    </div>
+    <div class="metric-item">
+        <span>REALTIME AI (박재경)</span>
+        <b>WEBSOCKET CHAT · OPENAI</b>
+    </div>
+    <div class="metric-item">
+        <span>BOARD MODULE (서민성)</span>
+        <b>NOTICE · FREE BOARD · COMMENT</b>
+    </div>
+</div>
+
+
+<script th:src="@{/js/intro/landing.js}"></script>
+</body>
+</html>

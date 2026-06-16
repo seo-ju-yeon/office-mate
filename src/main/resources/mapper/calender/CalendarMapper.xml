@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.calender.mapper.CalendarMapper">
+
+    <select id="findAllWithDetails" resultType="office_mate_2605.calender.dto.CalendarDTO">
+        SELECT
+        ce.id,
+        ce.parent_id as parentId,
+        ce.owner_no as ownerNo,
+        ce.department,
+        ce.project_id as projectId,
+        ce.created_by as createdBy,
+        CASE
+        WHEN ce.scope = 'PROJECT' AND e.name IS NOT NULL
+        THEN ce.title || ' (' || e.name || ')'
+        ELSE ce.title
+        END as title,
+        ce.description,
+        ce.starts_at as startsAt,
+        ce.ends_at as endsAt,
+        ce.is_all_day as isAllDay,
+        ce.scope,
+        ce.google_event_id as googleEventId,
+        ce.color_type as colorId,
+        ce.recurrence_rule as recurrenceRule,
+        ce.recurrence_count as count,
+        e.name as ownerName,
+        d.name as departmentName,
+        p.name as projectName
+        FROM calendar_event ce
+        LEFT JOIN employee e ON ce.owner_no = e.employee_no
+        LEFT JOIN departments d ON ce.department = d.code
+        LEFT JOIN project p ON ce.project_id = p.id
+        WHERE ce.scope = #{scope}
+        AND (
+        <choose>
+            <when test="scope.name() == 'PERSONAL'">
+                ce.owner_no = #{employeeNo}
+            </when>
+            <when test="scope.name() == 'TEAM'">
+                ce.department = (SELECT department FROM employee WHERE employee_no = #{employeeNo})
+            </when>
+            <when test="scope.name() == 'PROJECT'">
+                ce.project_id IN (SELECT project_id FROM project_member WHERE employee_no = #{employeeNo})
+            </when>
+        </choose>
+        )
+        AND (
+        ce.project_id IS NULL
+        OR (p.id IS NOT NULL AND p.status NOT IN ('ON_HOLD', 'DONE', 'CANCELED'))
+        )
+        <if test="start != null and start != '' and end != null and end != ''">
+            AND ce.starts_at &lt; CAST(#{end} AS timestamp)
+            AND ce.ends_at &gt; CAST(#{start} AS timestamp)
+        </if>
+        ORDER BY ce.starts_at ASC
+    </select>
+
+    <select id="findDetailById" resultType="office_mate_2605.calender.dto.CalendarDTO">
+        SELECT
+            ce.id, ce.parent_id as parentId, ce.owner_no as ownerNo,
+            ce.department, ce.project_id as projectId, ce.created_by as createdBy,
+            CASE
+                WHEN ce.scope = 'PROJECT' AND e.name IS NOT NULL
+                    THEN ce.title || ' (' || e.name || ')'
+                ELSE ce.title
+                END as title,
+            ce.description, ce.starts_at as startsAt, ce.ends_at as endsAt,
+            ce.is_all_day as isAllDay, ce.scope, ce.google_event_id as googleEventId,
+            ce.color_type as colorId,
+            ce.recurrence_rule as recurrenceRule,
+            ce.recurrence_count as count,
+            e.name as ownerName, d.name as departmentName, p.name as projectName
+        FROM calendar_event ce
+                 LEFT JOIN employee e ON ce.owner_no = e.employee_no
+                 LEFT JOIN departments d ON ce.department = d.code
+                 LEFT JOIN project p ON ce.project_id = p.id
+        WHERE ce.id = #{id}
+    </select>
+
+    <select id="getDepartmentByEmpNo" resultType="string">
+        SELECT department FROM employee WHERE employee_no = #{employeeNo}
+    </select>
+
+</mapper>

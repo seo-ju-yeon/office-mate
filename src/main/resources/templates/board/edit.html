@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<head>
+  <th:block layout:fragment="head-extra">
+    <link rel="stylesheet" th:href="@{/css/board/edit.css}">
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  </th:block>
+</head>
+
+<body>
+<div layout:fragment="content">
+  <div class="wrap">
+    <div class="main">
+
+      <div class="hd">
+        <span class="hd-title"
+              th:text="${boardType == 'notice'} ? '공지사항 수정' :
+               (${boardType == 'projectNotice'} ? '프로젝트 공지 수정' : '자유게시판 수정')">게시글 수정
+        </span>
+      </div>
+
+      <!--
+      enctype="multipart/form-data" 필수.
+      없으면 새 첨부파일(MultipartFile)이 서버에 전달되지 않는다.
+      -->
+      <form class="form-wrap"
+            th:action="@{/board/update}"
+            method="post"
+            enctype="multipart/form-data"
+            id="editForm">
+
+        <input type="hidden" name="postId"  th:value="${post.id}">
+        <input type="hidden" name="boardId" th:value="${post.boardId}">
+        <input type="hidden" name="editorNo" id="editorNo">
+
+        <div class="form-row" th:if="${boardType == 'notice'}">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 0;">
+            <input type="checkbox" name="pinned" id="pinned"
+                   th:checked="${post.pinned}" style="width: 18px; height: 18px;">
+            <span style="font-weight: 600; color: #d32f2f;">최상단에 공지로 고정하기</span>
+          </label>
+        </div>
+
+        <!-- 제목 -->
+        <div class="form-row">
+          <label for="title">제목</label>
+          <input type="text" id="title" name="title"
+                 th:value="${post.title}"
+                 placeholder="제목을 입력해주세요" required maxlength="200">
+        </div>
+
+        <!-- 내용: textarea → Quill 에디터 + hidden input -->
+        <div class="form-row">
+          <label>내용</label>
+          <!-- Quill 편집 영역 -->
+          <div id="quillEditor"></div>
+          <!--
+             기존 내용(post.content)을 th:value로 담아두고 JS가 quill.root.innerHTML에 주입.
+               submit 직전에 Quill HTML로 덮어씀. name="content"으로 서버 전달.
+          -->
+          <input type="hidden" id="content" name="content" th:value="${post.content}">
+        </div>
+
+        <!-- 첨부파일 -->
+        <div class="attach-section">
+          <label>첨부파일</label>
+
+          <!--
+            기존 첨부파일 목록.
+            × 버튼 클릭 → 줄긋기 표시 + hidden input(deleteAttachmentIds) 추가
+            되돌리기 버튼 클릭 → 줄긋기 제거 + hidden input 제거
+          -->
+          <div class="existing-files" id="existingFiles"
+               th:if="${post.attachments != null and !post.attachments.isEmpty()}">
+            <div th:each="att : ${post.attachments}"
+                 class="file-item"
+                 th:id="'existing-' + ${att.id}">
+
+              <!-- 파일 아이콘 (간단히 📎) -->
+              <span>📎</span>
+
+              <!-- 원본 파일명 -->
+              <span class="file-name" th:text="${att.originalName}">파일명.pdf</span>
+
+              <!-- 파일 크기 (KB 변환) -->
+              <span class="file-size"
+                    th:text="${#numbers.formatInteger(att.fileSize / 1024, 0, 'COMMA') + ' KB'}">
+                0 KB
+              </span>
+
+              <!-- × 버튼: 삭제 표시 -->
+              <button type="button" class="file-delete-btn"
+                      th:onclick="'markDelete(' + ${att.id} + ', this)'"
+                      title="삭제">×</button>
+            </div>
+          </div>
+
+          <!-- 삭제할 첨부파일 ID를 담는 hidden input 컨테이너 (JS가 동적으로 추가/제거) -->
+          <div id="deleteAttachmentInputs"></div>
+
+          <!-- 새 파일 업로드 -->
+          <div class="new-file-area">
+            <input type="file" name="attachments" multiple
+                   accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip">
+            <span class="new-file-hint">여러 파일 선택 가능</span>
+          </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="btn-row">
+          <a th:href="${post.boardId == 1} ? @{/board/notice/{id}(id=${post.id})} :
+           (${post.boardId == 2} ? @{/board/general/{id}(id=${post.id})} :
+            @{/board/project/notice/{id}(id=${post.id})})"
+             class="btn-cancel">취소</a>
+          <button type="submit" class="btn-submit">수정 완료</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+<th:block layout:fragment="scripts">
+  <!--  Quill JS (edit.js보다 먼저 로드) -->
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <script th:src="@{/js/board/edit.js}"></script>
+</th:block>
+</body>
+</html>

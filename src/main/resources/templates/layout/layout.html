@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Mate - 레이아웃</title>
+    <!-- 외부 폰트와 아이콘/채팅 알림 라이브러리 로드 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+
+    <link rel="stylesheet" th:href="@{/css/layout/layout.css}">
+    <th:block layout:fragment="head-extra"></th:block>
+</head>
+<body th:data-active-page="${activePage}"
+      th:data-page-roles="${pageRoles}">
+
+<!-- 상단 헤더 영역 -->
+<header class="top-header">
+
+    <div class="header-left">
+        <div class="brand-logo">OFFICE MATE</div>
+    </div>
+
+    <div class="header-right">
+        <!-- 사용자 이름은 JavaScript에서 /api/auth/me 조회 후 갱신함 -->
+        <div class="user-profile">
+            <i data-lucide="user-circle"></i>
+            <span><strong id="layout-user-name">방문자</strong>님</span>
+        </div>
+
+        <button type="button" class="header-action-btn role-menu-hidden" data-roles="USER,ADMIN,SUPER"
+                onclick="location.href='/mypage'">
+            내 정보
+        </button>
+
+        <button type="button" class="header-action-btn role-menu-hidden" data-roles="USER,ADMIN,SUPER"
+                onclick="openChatPopup()">
+            채팅
+        </button>
+
+    </div>
+</header>
+
+<div class="main-wrapper">
+    <!-- 좌측 사이드바 영역 -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+
+                <div class="nav-label">업무 관리</div>
+                <a th:href="@{/dashboard}" class="nav-item role-menu-hidden" data-roles="USER,ADMIN,SUPER"
+                   th:classappend="${activePage == 'dashboard'} ? 'active'">
+                    <i data-lucide="layout-dashboard"></i> 대시보드
+                </a>
+                <!-- 게시판 하위 메뉴 아코디언 -->
+                <div class="nav-accordion role-menu-hidden" id="boardAccordion" data-roles="USER,ADMIN,SUPER">
+                    <div class="nav-item nav-accordion-toggle"
+                         th:classappend="${activePage == 'board'} ? 'active'"
+                         onclick="toggleAccordion()">
+                        <i data-lucide="wallet"></i>
+                        <span>게시판</span>
+                        <i data-lucide="chevron-down" class="accordion-arrow" id="accordionArrow"></i>
+                    </div>
+                    <div class="nav-sub-menu" id="boardSubMenu">
+                        <a th:href="@{/board/list}" class="nav-sub-item"
+                           th:classappend="${activePage == 'boardAll'} ? 'active'">전체글보기</a>
+                        <a th:href="@{/board/notice/list}" class="nav-sub-item"
+                           th:classappend="${activePage == 'notice'} ? 'active'">공지사항</a>
+                        <a th:href="@{/board/general/list}" class="nav-sub-item"
+                           th:classappend="${activePage == 'general'} ? 'active'">자유게시판</a>
+                        <a th:href="@{/board/project/notice/list}" class="nav-sub-item"
+                           th:classappend="${activePage == 'projectNotice'} ? 'active'">프로젝트 공지사항</a>
+                    </div>
+                </div>
+                <a th:href="@{/calendar}" class="nav-item role-menu-hidden" data-roles="USER,ADMIN,SUPER"
+                   th:classappend="${activePage == 'pointManagement'} ? 'active'">
+                    <i data-lucide="calendar"></i> 캘린더
+                </a>
+
+                <a th:href="@{/projects}" id="adminProjectMenu" class="nav-item role-menu-hidden" data-roles="ADMIN,SUPER"
+                   th:classappend="${activePage == 'pointManagement'} ? 'active'">
+                    <i data-lucide="folder-kanban"></i> 프로젝트 관리
+                </a>
+
+                <a th:href="@{/organization-chart}" class="nav-item role-menu-hidden" data-roles="USER,ADMIN,SUPER">
+                    <i data-lucide="network"></i> 조직도
+                </a>
+
+            </div>
+
+            <div class="nav-section">
+
+                <div class="nav-label role-menu-hidden" data-roles="ADMIN,SUPER">관리자 메뉴</div>
+                <a th:href="@{/employees/register}" class="nav-item role-menu-hidden" data-roles="ADMIN,SUPER">
+                    <i data-lucide="user-plus"></i> 직원 등록
+                </a>
+
+                <a th:href="@{/account-security/manage}" class="nav-item role-menu-hidden" data-roles="ADMIN,SUPER">
+                    <i data-lucide="shield-alert"></i> 계정 보안 관리
+                </a>
+                <a th:href="@{/status-requests/manage}" class="nav-item role-menu-hidden" data-roles="SUPER">
+                    <i data-lucide="clipboard-check"></i> 상태 신청 관리
+                </a>
+                <a th:href="@{/audit-logs/manage}" class="nav-item role-menu-hidden" data-roles="SUPER">
+                    <i data-lucide="file-search"></i> 감사 로그
+                </a>
+            </div>
+
+        </nav>
+
+        <a href="javascript:logoutFromLayout();" class="logout-btn">
+            <i data-lucide="log-out"></i> 로그아웃
+        </a>
+    </aside>
+
+    <!-- 페이지별 콘텐츠 본문 영역 -->
+    <main class="main-content">
+        <div layout:fragment="content"></div>
+    </main>
+</div>
+
+<!-- 채팅 알림 토스트 표시 영역 -->
+<div id="toastContainer"></div>
+
+<script th:src="@{/js/layout/layout.js}"></script>
+<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

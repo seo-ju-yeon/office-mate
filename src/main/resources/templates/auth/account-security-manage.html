@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<th:block layout:fragment="head-extra">
+    <title>OfficeMate - 계정 보안 관리</title>
+    <link rel="stylesheet" th:href="@{/css/auth/account-security-manage.css}">
+</th:block>
+
+<div layout:fragment="content" class="account-security-container">
+    <!-- 계정 보안 관리 화면의 제목 영역 -->
+    <div>
+        <h1 class="page-title">계정 보안 관리</h1>
+    </div>
+
+    <!-- 계정 목록을 사번/이름으로 검색하고 잠긴 계정만 필터링하는 조회 도구 영역 -->
+    <div class="toolbar">
+        <input id="keyword-input" class="search-input" type="text" placeholder="사번 또는 이름">
+        <label class="filter-toggle">
+            <input id="locked-only-input" type="checkbox">
+            잠긴 계정만
+        </label>
+        <button type="button" class="btn-primary" onclick="loadAccountSecurityStatuses()">
+            <i data-lucide="search"></i>
+            조회
+        </button>
+    </div>
+
+    <!-- 조회 결과나 오류 메시지를 사용자에게 안내하는 영역 -->
+    <div id="account-security-message" class="message-area"></div>
+
+    <!-- 현재 조회 조건과 페이지 기준으로 전체/잠김/정상 계정 수를 요약해서 보여줌 -->
+    <div class="summary-row">
+        <div class="summary-item">
+            <div class="summary-label">전체 조회 계정</div>
+            <div id="total-count" class="summary-value">0</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">현재 페이지 잠김</div>
+            <div id="locked-count" class="summary-value">0</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">현재 페이지 정상</div>
+            <div id="normal-count" class="summary-value">0</div>
+        </div>
+    </div>
+
+    <!-- 계정별 로그인 실패 횟수와 잠금 상태를 표 형태로 보여주는 목록 영역 -->
+    <div class="table-panel">
+        <div class="table-wrap">
+            <table class="security-table">
+                <thead>
+                <tr>
+                    <th>직원</th>
+                    <th>부서/직급</th>
+                    <th>권한</th>
+                    <th>실패 횟수</th>
+                    <th>잠금 상태</th>
+                    <th>마지막 실패</th>
+                    <th>잠금 시각</th>
+                    <th>최근 해제</th>
+                    <th>작업</th>
+                </tr>
+                </thead>
+                <tbody id="account-security-table-body">
+                <tr>
+                    <td colspan="9" class="empty-row">조회 결과가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 계정 보안 목록의 이전/다음 페이지 이동과 현재 페이지 정보를 표시하는 영역 -->
+        <div class="pagination-row">
+            <button id="prev-page-button" type="button" class="btn-secondary" onclick="moveAccountSecurityPage(-1)">
+                이전
+            </button>
+            <span id="page-info" class="page-info">0 / 0</span>
+            <button id="next-page-button" type="button" class="btn-secondary" onclick="moveAccountSecurityPage(1)">
+                다음
+            </button>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/auth/account-security-manage.js}"></script>
+</th:block>
+</html>

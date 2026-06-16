@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직원 채팅방</title>
+    <link rel="stylesheet" th:href="@{/css/chat/chat.css}">
+
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+<div class="chat-popup">
+    <div class="chat-header">
+        <button id="toggleUserList" class="icon-btn">👥</button>
+        <span class="room-name" id="opponentName">
+            <th:block th:if="${roomId != null}">
+                <span th:if="${targetName != null}" th:text="${targetName + '과의 대화'}"></span>
+
+                <span th:if="${targetName == null}"
+                      th:text="${(roomName != null ? roomName : '그룹 채팅') + (roomMemberCount > 2 ? ' [' + roomMemberCount + ']' : '')}"></span>
+            </th:block>
+
+            <th:block th:if="${roomId == null}">
+                <span>대화 상대를 선택해 주세요</span>
+            </th:block>
+        </span>
+        <div class="chat-header-actions" th:if="${targetNo != null or roomId != null}">
+            <button type="button" id="summaryModeBtn" class="header-tool-btn">요약하기</button>
+            <button type="button" id="summarySubmitBtn" class="header-tool-btn primary" style="display: none;">요약하기</button>
+            <button type="button" id="summaryCancelBtn" class="header-tool-btn" style="display: none;">취소</button>
+        </div>
+        <button class="close-btn" onclick="window.close()">×</button>
+    </div>
+
+    <div class="chat-main-area">
+        <div class="user-sidebar" id="userSidebar">
+            <div class="sidebar-header">
+                <div class="chat-tabs">
+                    <span id="tabEmp" onclick="switchChatTab('EMP')">직원</span>
+                    <span id="tabRoom" onclick="switchChatTab('ROOM'); loadChatRoomList();">그룹 채팅</span>
+                </div>
+            </div>
+
+            <div class="user-list" id="userList">
+                <th:block th:each="emp : ${employees}">
+                    <div class="user-item" th:data-employee-no="${emp.employeeNo}">
+                        <input type="checkbox" class="group-check" th:value="${emp.employeeNo}"
+                               style="margin: 0 10px 0 15px;">
+
+                        <div class="user-info" th:onclick="handleUserClick(this.parentElement, event)">
+                            <div class="user-main">
+                                <span class="user-name" th:text="${emp.name}">이름</span>
+                                <span class="status-indicator offline"></span>
+                            </div>
+                            <div class="user-sub">
+                                <span class="user-dept" th:text="${emp.department}">부서</span>
+                                <span class="user-badge" th:text="${emp.position}">직급</span>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+
+            <div class="user-list" id="roomList" style="display: none;"></div>
+
+            <div id="groupCreateArea">
+                <input type="text" id="groupRoomName" placeholder="채팅방 이름 입력">
+                <button onclick="createGroupChat()">그룹 채팅방 만들기</button>
+            </div>
+
+            <div id="roomListArea">
+                <th:block th:if="${not #lists.isEmpty(rooms)}">
+                    <div th:each="room : ${rooms}"
+                         class="room-item"
+                         th:attr="data-room-id=${room.id}"
+                         onclick="handleRoomClick(this)">
+                        <div class="room-info">
+                            <span class="room-name" th:text="${room.name}">채팅방 이름</span>
+                            <span class="last-msg" th:text="${room.lastMessage}">마지막 메시지</span>
+                        </div>
+                    </div>
+                </th:block>
+
+                <div th:if="${#lists.isEmpty(rooms)}" class="empty-msg">
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-content">
+            <div class="chat-messages" id="chatMessages">
+                <div id="noMessageNotice" th:if="${#lists.isEmpty(chatHistory) and #lists.isEmpty(recentMessages)}"
+                     style="text-align: center; color: #999; margin-top: 50px;">
+                    대화 내용이 없습니다
+                </div>
+
+                <th:block th:each="msg : ${recentMessages}">
+                </th:block>
+
+                <th:block th:each="msg : ${chatHistory}">
+                    <div class="message"
+                         th:classappend="${msg.aiGenerated ? 'ai received' : (msg.senderNo == userNo ? 'sent' : 'received')}"
+                         th:data-msg-id="${msg.id}" th:attr="data-msg-id=${msg.id}">
+                        <div th:if="${msg.aiGenerated or msg.senderNo != userNo}"
+                             class="sender"
+                             th:text="${msg.aiGenerated ? 'AI 챗봇' : msg.senderName}">상대방</div>
+
+                        <div class="message-info">
+                            <span class="unread-mark"
+                                  th:classappend="${msg.unreadCount == 0} ? 'hidden'"
+                                  th:text="${msg.unreadCount > 0} ? ${msg.unreadCount} : ''">
+                            </span>
+
+                            <div class="timestamp" th:data-sent-at="${msg.sentAt}">계산 중...</div>
+
+                            <div class="message-content" th:text="${msg.content}">메시지 내용</div>
+                        </div>
+                    </div>
+                </th:block>
+
+                <div th:if="${targetNo == null and roomId == null}" class="date-divider">
+                    대화할 상대를 목록에서 선택해 주세요.
+                </div>
+            </div>
+
+            <div class="chat-input-area" th:if="${targetNo != null or roomId != null}">
+                <div class="message-input-wrap">
+                    <div id="aiHighlightLayer" class="message-input-highlight" aria-hidden="true"></div>
+                    <textarea id="messageInput" placeholder="@AI 로 일정 질문하기"></textarea>
+                </div>
+                <button id="sendBtn">전송</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // 서버에서 전달받은 정보 (대시보드에서 넘겨준 값들)
+    window.currentRoomId = [[${roomId}]];
+    window.currentUserNo = [[${userNo}]];
+    window.currentUserName = [[${userName}]];
+    window.roomMemberCount = [[${roomMemberCount}]];
+    window.targetNo = [[${targetNo}]];
+</script>
+<script th:src="@{/js/chat/chat.js}"></script>
+</body>
+</html>

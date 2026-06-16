@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<th:block layout:fragment="head-extra">
+    <title>OfficeMate - 조직도</title>
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
+    <link rel="stylesheet" th:href="@{/css/employee/organization-chart.css}">
+</th:block>
+
+<div layout:fragment="content" class="organization-container">
+    <!-- 조직도 화면 제목과 직원 검색 영역 -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">조직도</h1>
+            <p class="page-description">재직자를 기준으로 부서별 구성원과 조직 현황을 한눈에 보여줍니다.</p>
+        </div>
+
+        <div class="search-box">
+<!--            <i data-lucide="search"></i>-->
+            <input id="employee-search" type="text" placeholder="이름, 사번, 이메일 검색">
+            <button type="button" class="search-button" onclick="renderOrganization()">검색</button>
+        </div>
+    </div>
+
+    <!-- 부서별 직원 목록을 전환하는 가로 탭 영역 -->
+    <nav class="dept-tabs-wrapper">
+        <div id="dept-list" class="dept-tabs">
+            <!-- JS로 탭 생성 -->
+        </div>
+    </nav>
+
+    <!-- 조직도 데이터 조회 실패 시 오류 메시지를 표시하는 영역 -->
+    <div id="organization-error" class="error-message"></div>
+
+    <!-- 부서 트리와 직원 카드 목록을 함께 보여주는 본문 영역 -->
+    <div class="organization-body">
+        <!-- 전체 조직과 부서별 직원을 빠르게 탐색하는 트리 영역 -->
+        <aside class="tree-panel">
+            <div class="tree-header">
+                <h2 class="tree-title">트리 조회</h2>
+                <p class="tree-description">부서를 펼쳐 구성원을 빠르게 확인합니다.</p>
+            </div>
+            <div id="organization-tree" class="tree-list">
+                <!-- JS로 트리 생성 -->
+            </div>
+        </aside>
+
+        <!-- 선택된 부서와 검색 조건에 맞는 직원 카드를 표시하는 영역 -->
+        <section class="member-panel">
+            <div class="member-grid-header">
+                <h2 id="selected-dept-title" class="grid-title">전체 직원</h2>
+                <span id="member-summary" class="dept-count">0명</span>
+            </div>
+            <div id="member-status-panel" class="member-status-panel">
+                <div id="status-summary" class="status-summary">재직 0명 · 휴직 0명</div>
+                <div id="status-tabs" class="status-tabs">
+                    <!-- JS로 상태 필터 생성 -->
+                </div>
+            </div>
+            <div id="member-grid" class="member-grid">
+                <!-- JS로 직원 카드 생성 -->
+            </div>
+        </section>
+    </div>
+
+    <!-- SUPER 권한자가 직원 정보와 재직 상태를 수정하는 관리 모달 -->
+    <div id="employee-management-modal" class="modal-backdrop" aria-hidden="true">
+        <form class="employee-modal" onsubmit="saveManagedEmployee(event)">
+            <div class="modal-header">
+                <h2 class="modal-title">직원 정보 수정</h2>
+                <button type="button" class="modal-close" onclick="closeManagementModal()" aria-label="닫기">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="management-message" class="modal-message"></div>
+                <div class="modal-field">
+                    <label for="management-employee-no">사번</label>
+                    <input id="management-employee-no" type="text" readonly>
+                </div>
+                <div class="modal-field">
+                    <label for="management-name">이름</label>
+                    <input id="management-name" type="text" maxlength="50" required>
+                </div>
+                <div class="modal-field">
+                    <label for="management-department">부서</label>
+                    <select id="management-department" required>
+                        <option value="FRONTEND">프론트엔드팀</option>
+                        <option value="BACKEND">백엔드팀</option>
+                        <option value="MANAGEMENT_SUPPORT">경영지원팀</option>
+                        <option value="MARKETING">마케팅팀</option>
+                        <option value="DB_MANAGEMENT">DB관리팀</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label for="management-position">직급</label>
+                    <select id="management-position" required>
+                        <option value="STAFF">사원</option>
+                        <option value="ASSISTANT_MANAGER">대리</option>
+                        <option value="MANAGER">과장</option>
+                        <option value="GENERAL_MANAGER">부장</option>
+                        <option value="DEPUTY_GENERAL_MANAGER">차장</option>
+                        <option value="CEO">사장</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label for="management-role">시스템 권한</label>
+                    <select id="management-role" required>
+                        <option value="USER">일반 사용자</option>
+                        <option value="ADMIN">관리자</option>
+                        <option value="SUPER">최고 관리자</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label for="management-status">재직 상태</label>
+                    <select id="management-status" required onchange="toggleResignedOnField()">
+                        <option value="ACTIVE">재직</option>
+                        <option value="ON_LEAVE">휴직</option>
+                        <option value="RESIGNED">퇴사</option>
+                    </select>
+                </div>
+                <div id="resigned-on-field" class="modal-field full resigned-on-field">
+                    <label for="management-resigned-on">퇴사일</label>
+                    <input id="management-resigned-on" type="date">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-button" onclick="closeManagementModal()">취소</button>
+                <button type="submit" id="management-save-button" class="modal-button primary">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/employee/organization-chart.js}"></script>
+</th:block>
+</html>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.chat.mapper.ChatMapper">
+    <resultMap id="ChatRoomResultMap" type="office_mate_2605.chat.domain.ChatRoom">
+        <id property="id" column="room_id"/>
+        <result property="name" column="room_name"/>
+        <result property="isGroup" column="is_group"/>
+
+        <association property="lastMessage" javaType="office_mate_2605.chat.domain.ChatMessage">
+            <result property="content" column="last_message_content"/>
+            <result property="sentAt" column="last_message_time"/>
+        </association>
+
+        <association property="chatRoomAiConfig" javaType="office_mate_2605.chat.domain.ChatRoomAiConfig">
+            <id property="roomId" column="room_id"/>
+            <result property="lastSummary" column="last_summary"/>
+        </association>
+    </resultMap>
+
+    <select id="findAllRoomsWithDetails" resultMap="ChatRoomResultMap">
+        SELECT cr.id       as room_id,
+               cr.name     as room_name,
+               cr.is_group as is_group,
+               cfg.last_summary,
+               msg.content as last_message_content,
+               msg.sent_at as last_message_time
+        FROM chat_room cr
+                 LEFT JOIN chat_room_ai_config cfg ON cr.id = cfg.room_id
+                 JOIN chat_room_member crm ON cr.id = crm.room_id
+                 LEFT JOIN LATERAL(
+            SELECT m1.room_id, m1.content, m1.sent_at FROM chat_message m1
+                    WHERE m1.room_id = cr.id
+                      AND (
+                          (m1.is_ai_called = false AND m1.is_ai_generated = false)
+                          OR m1.sender_no = #{employeeNo}
+                    )
+                    ORDER BY m1.sent_at DESC, m1.id DESC
+                    LIMIT 1
+                           ) msg ON true
+        WHERE crm.employee_no = #{employeeNo}
+          AND cr.is_group = true
+        ORDER BY msg.sent_at DESC NULLS LAST
+    </select>
+
+    <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_message (room_id,
+                                  sender_no,
+                                  parent_message_id,
+                                  content,
+                                  message_type,
+                                  is_ai_called,
+                                  is_ai_generated,
+                                  ai_metadata,
+                                  sent_at)
+        VALUES (#{chatRoom.id},
+                #{senderNo},
+                #{parentMessageId},
+                #{content},
+                #{messageType},
+                #{isAiCalled},
+                #{isAiGenerated},
+                CAST(#{aiMetadataJson,jdbcType=VARCHAR} AS jsonb),
+                #{sentAt})
+    </insert>
+
+    <select id="findMessagesByRoomId" resultType="office_mate_2605.chat.domain.ChatMessage">
+        SELECT *
+        FROM (SELECT id,
+                     room_id,
+                     sender_no,
+                     parent_message_id,
+                     content,
+                     sent_at,
+                     message_type,
+                     is_ai_called,
+                     is_ai_generated
+              FROM chat_message
+              WHERE room_id = #{roomId}
+                AND (
+                  (is_ai_called = false AND is_ai_generated = false)
+                      OR sender_no = #{userNo}
+                  )
+              ORDER BY sent_at DESC
+              LIMIT #{limit} OFFSET #{offset}) AS sub
+        ORDER BY sent_at ASC
+    </select>
+
+    <select id="findMessagesByIds" resultType="office_mate_2605.chat.domain.ChatMessage">
+        SELECT id, room_id, sender_no, parent_message_id, content, sent_at, message_type,
+        is_ai_called, is_ai_generated
+        FROM chat_message
+        WHERE room_id = #{roomId}
+        AND id IN
+        <foreach collection="messageIds" item="messageId" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+        AND (
+        (is_ai_called = false AND is_ai_generated = false)
+        OR sender_no = #{userNo}
+        )
+        ORDER BY sent_at ASC, id ASC
+    </select>
+
+    <insert id="upsertChatRoomSummary">
+        INSERT INTO chat_room_ai_config (room_id,
+                                         is_ai_active,
+                                         summary_enabled,
+                                         last_summary,
+                                         last_summarized_id,
+                                         updated_at)
+        VALUES (#{roomId},
+                true,
+                true,
+                #{summary},
+                #{lastSummarizedId},
+                NOW())
+        ON CONFLICT
+            (room_id)
+            DO UPDATE
+        SET summary_enabled = true,
+            last_summary = EXCLUDED.last_summary,
+            last_summarized_id = EXCLUDED.last_summarized_id,
+            updated_at = NOW()
+    </insert>
+
+    <select id="findAllRoomsWithLastMessage" resultMap="ChatRoomResultMap">
+        SELECT cr.id     as room_id,
+               cr.name   as room_name,
+               cr.is_group,
+               (SELECT m.content
+                FROM chat_message m
+                WHERE m.room_id = cr.id
+                  AND (
+                    (m.is_ai_called = false AND m.is_ai_generated = false)
+                        OR m.sender_no = #{employeeNo}
+                    )
+                ORDER BY m.sent_at DESC
+                LIMIT 1) as last_message_content,
+               (SELECT m.sent_at
+                FROM chat_message m
+                WHERE m.room_id = cr.id
+                  AND (
+                    (m.is_ai_called = false AND m.is_ai_generated = false)
+                        OR m.sender_no = #{employeeNo}
+                    )
+                ORDER BY m.sent_at DESC
+                LIMIT 1) as last_message_time
+        FROM chat_room cr
+                 JOIN chat_room_member crm ON cr.id = crm.room_id
+        WHERE crm.employee_no = #{employeeNo}
+    </select>
+
+    <insert id="insertChatRoom" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_room (name, is_group)
+        VALUES (#{name}, #{isGroup})
+    </insert>
+
+    <insert id="insertChatRoomMember">
+        INSERT INTO chat_room_member (room_id, employee_no, joined_at)
+        VALUES (#{chatRoom.id}, #{employeeNo}, NOW())
+    </insert>
+
+    <select id="findPrivateRoomByMembers" resultType="java.lang.Long">
+        SELECT m1.room_id
+        FROM chat_room_member m1
+                 JOIN chat_room_member m2 ON m1.room_id = m2.room_id
+                 JOIN chat_room cr ON m1.room_id = cr.id
+        WHERE cr.is_group = false
+          AND m1.employee_no = #{currentUserNo}
+          AND m2.employee_no = #{targetNo}
+        LIMIT 1
+    </select>
+
+    <update id="updateMemberLastRead">
+        UPDATE chat_room_member
+        SET last_read_message_id = #{lastMessageId}
+        WHERE room_id = #{roomId}
+          AND employee_no = #{employeeNo}
+          AND (last_read_message_id IS NULL OR last_read_message_id &lt; #{lastMessageId})
+    </update>
+
+    <select id="findLatestMessageIdByRoomId" resultType="java.lang.Long">
+        SELECT id
+        FROM chat_message
+        WHERE room_id = #{roomId}
+        ORDER BY sent_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findById" resultMap="ChatRoomResultMap">
+        SELECT cr.id       as room_id,
+               cr.name     as room_name,
+               cr.is_group as is_group
+        FROM chat_room cr
+        WHERE cr.id = #{id}
+    </select>
+
+    <select id="countUnreadMembers" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM chat_room_member
+        WHERE room_id = #{roomId}
+          AND employee_no != #{senderNo}
+          AND (last_read_message_id IS NULL OR last_read_message_id &lt; #{messageId})
+    </select>
+
+    <select id="getRoomMemberCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM chat_room_member
+        WHERE room_id = #{roomId}
+    </select>
+
+    <select id="findOpponentLastReadId" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(last_read_message_id), 0)
+        FROM chat_room_member
+        WHERE room_id = #{roomId}
+          AND employee_no = #{opponentNo}
+    </select>
+
+    <select id="findRoomMemberNos" resultType="java.lang.String">
+        SELECT employee_no
+        FROM chat_room_member
+        WHERE room_id = #{roomId}
+    </select>
+</mapper>

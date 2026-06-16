@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>OfficeMate - 서비스 이용 동의</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #F4F5F7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            width: 600px;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .version {
+            font-size: 12px;
+            color: #6B778C;
+            text-align: right;
+        }
+
+        .term-box {
+            height: 300px;
+            border: 1px solid #DFE1E6;
+            padding: 20px;
+            overflow-y: scroll;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 20px 0;
+            color: #172B4D;
+            background: #FAFBFC;
+        }
+
+        .consent-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-confirm {
+            padding: 12px;
+            background: #0052CC;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-confirm:disabled {
+            background: #B3D4FF;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>개인정보 수집·이용 동의</h2>
+    <div class="version">버전: v1.0 | 시행일: 2024-01-01</div>
+
+    <div class="term-box" id="termBox">
+        <h3>1. 수집하는 개인정보 항목</h3>
+        <p>사번, 이름, 부서, 직급, 이메일, 접속 IP, 서비스 이용 기록</p>
+        <h3>2. 수집 및 이용 목적</h3>
+        <p>본 시스템은 사내 업무 효율성 증대와 부서 간 소통을 위한 그룹웨어로, 인적 자원 관리 및 보안 감사(Audit Log)를 위해 정보를 수집합니다.</p>
+        <h3>3. 보유 및 이용 기간</h3>
+        <p>재직 기간 동안 이용하며, 퇴직 후에는 관련 법령(근로기준법 등)에 따라 3년간 보관 후 파기합니다.</p>
+        <h3>4. 퇴사자 데이터 처리</h3>
+        <p>퇴사 즉시 계정은 비활성화되며, 수집된 로그는 보안 사고 대응을 위해 3년간 별도 보관됩니다.</p>
+        <p>...</p>
+        <p>(내용을 확인하시려면 끝까지 스크롤 해주세요)</p>
+        <div style="height: 100px;"></div>
+        <p><strong>[안내 종료] 모든 내용을 확인하셨습니다.</strong></p>
+    </div>
+
+    <div class="consent-area">
+        <input type="checkbox" id="consentChk" disabled>
+        <label for="consentChk">위 내용에 동의합니다. (필수)</label>
+    </div>
+
+    <div class="btn-group">
+        <button id="agreeBtn" class="btn-confirm" disabled onclick="location.href='dashboard.html'" data-action="CREATE"
+                data-resource="PRIVACY_CONSENT">동의 및 시스템 시작
+        </button>
+        <a href="login.html" style="text-align: center; font-size: 13px; color: #6B778C;">동의하지 않고 로그아웃</a>
+    </div>
+</div>
+
+<script>
+    const termBox = document.getElementById('termBox');
+    const consentChk = document.getElementById('consentChk');
+    const agreeBtn = document.getElementById('agreeBtn');
+
+    termBox.addEventListener('scroll', () => {
+        // 스크롤이 끝에 도달했는지 확인 (오차 2px 허용)
+        if (termBox.scrollHeight - termBox.scrollTop <= termBox.clientHeight + 2) {
+            consentChk.disabled = false;
+        }
+    });
+
+    consentChk.addEventListener('change', () => {
+        agreeBtn.disabled = !consentChk.checked;
+    });
+</script>
+</body>
+</html>

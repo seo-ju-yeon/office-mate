@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!--
+    [권한] ROLE_SUPER_ADMIN 전용
+    [설명] 시스템 내 모든 리소스 조작(C.U.D) 및 접근 이력을 모니터링하는 페이지
+    [API]
+      - 조회: GET /api/v1/audit-logs?page=0&size=20&action=...
+      - 상세 JSON: GET /api/v1/audit-logs/{id}/details
+-->
+<head>
+  <meta charset="UTF-8">
+  <title>OfficeMate - 감사 로그 관리</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --jira-blue: #0052CC; --jira-navy: #0A1929; --jira-gray: #F4F5F7;
+      --jira-red: #FF5630; --jira-green: #36B37E; --jira-orange: #FFAB00;
+      --border-color: #DFE1E6; --text-main: #172B4D;
+    }
+
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--jira-gray); color: var(--text-main); }
+
+    /* 사이드바 (공통) */
+    .sidebar { width: 240px; background: var(--jira-navy); color: #B0BEC5; display: flex; flex-direction: column; }
+    .sidebar-header { padding: 20px; font-size: 20px; font-weight: 700; color: white; border-bottom: 1px solid #1e293b; }
+    .nav-item { padding: 12px 24px; display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; color: inherit; font-size: 14px; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+    .nav-item.active { background: var(--jira-blue); color: white; }
+
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    header { height: 60px; background: white; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
+
+    .container { padding: 25px; overflow-y: auto; }
+    .page-title { margin: 0 0 20px 0; font-size: 24px; font-weight: 700; }
+
+    /* 필터 섹션 */
+    .filter-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 11px; font-weight: 700; color: #6B778C; text-transform: uppercase; }
+    .filter-group input, .filter-group select { padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; }
+    .btn-search { background: var(--jira-blue); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+    /* 로그 테이블 */
+    .table-wrapper { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #FAFBFC; padding: 12px; text-align: left; font-size: 12px; color: #6B778C; border-bottom: 2px solid var(--jira-gray); }
+    td { padding: 12px; border-bottom: 1px solid var(--jira-gray); font-size: 13px; cursor: pointer; }
+    tr:hover { background: #F4F7FB; }
+
+    /* 배지 스타일 */
+    .badge { padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; color: white; }
+    .bg-create { background: var(--jira-green); }
+    .bg-read { background: var(--jira-blue); }
+    .bg-update { background: var(--jira-orange); }
+    .bg-delete { background: var(--jira-red); }
+    .bg-purge { background: #000000; }
+
+    .status-ok { color: var(--jira-green); font-weight: bold; }
+    .status-fail { color: var(--jira-red); font-weight: bold; }
+
+    /* 상세 모달 (JSON Diff) */
+    #logModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 1000; justify-content:center; align-items:center; }
+    .modal-content { background:white; width: 900px; max-height: 80vh; border-radius: 8px; display:flex; flex-direction:column; }
+    .modal-header { padding:20px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; }
+    .modal-body { padding:20px; overflow-y:auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .json-view { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; white-space: pre-wrap; overflow-x: auto; }
+    .json-label { font-size: 12px; font-weight: bold; margin-bottom: 8px; display: block; color: #6B778C; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">🟦 OfficeMate</div>
+  <nav class="nav-menu">
+    <a href="dashboard.html" class="nav-item">🏠 대시보드</a>
+    <a href="employee-list.html" class="nav-item">👥 직원 관리</a>
+    <a href="audit-log.html" class="nav-item active">📜 감사 로그</a>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <header>
+    <div style="font-weight: 500;">Admin: 김민수 팀장 (SUPER_ADMIN)</div>
+    <button class="btn-search" style="background: var(--jira-gray); color: var(--text-main); border: 1px solid var(--border-color);" onclick="exportCSV()">CSV 내보내기</button>
+  </header>
+
+  <div class="container">
+    <h2 class="page-title">감사 로그 조회</h2>
+
+    <!-- 필터 섹션 -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label>조회 기간</label>
+        <input type="date" id="startDate" value="2026-04-27">
+      </div>
+      <div class="filter-group">
+        <label>액션 타입</label>
+        <select>
+          <option>전체</option>
+          <option>CREATE</option>
+          <option>READ</option>
+          <option>UPDATE</option>
+          <option>DELETE</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>행위자 사번</label>
+        <input type="text" placeholder="사번 입력">
+      </div>
+      <div class="filter-group">
+        <label>결과</label>
+        <select>
+          <option>전체</option>
+          <option>SUCCESS</option>
+          <option>FAIL</option>
+        </select>
+      </div>
+      <button class="btn-search">필터 적용</button>
+    </div>
+
+    <!-- 로그 리스트 -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+        <tr>
+          <th>타임스탬프</th>
+          <th>행위자</th>
+          <th>액션</th>
+          <th>리소스</th>
+          <th>ID</th>
+          <th>IP 주소</th>
+          <th>결과</th>
+        </tr>
+        </thead>
+        <tbody id="logTableBody">
+        <!-- 더미 데이터 1 -->
+        <tr onclick="showLogDetail(1)">
+          <td>2026-05-04 14:22:01</td>
+          <td>김민수(EMP001)</td>
+          <td><span class="badge bg-update">UPDATE</span></td>
+          <td>EMPLOYEE</td>
+          <td>EMP002</td>
+          <td>192.168.0.15</td>
+          <td><span class="status-ok">SUCCESS</span></td>
+        </tr>
+        <!-- 더미 데이터 2 -->
+        <tr onclick="showLogDetail(2)">
+          <td>2026-05-04 13:05:44</td>
+          <td>이지은(EMP002)</td>
+          <td><span class="badge bg-delete">DELETE</span></td>
+          <td>BOARD_POST</td>
+          <td>BRD_1029</td>
+          <td>192.168.0.42</td>
+          <td><span class="status-fail">FAIL (403)</span></td>
+        </tr>
+        <!-- 더미 데이터 3 -->
+        <tr onclick="showLogDetail(3)">
+          <td>2026-05-04 11:50:12</td>
+          <td>박준혁(EMP003)</td>
+          <td><span class="badge bg-create">CREATE</span></td>
+          <td>PRIVACY_CONSENT</td>
+          <td>CONS_882</td>
+          <td>211.234.12.5</td>
+          <td><span class="status-ok">SUCCESS</span></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- 상세 로그 모달 -->
+<div id="logModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="margin:0;">로그 상세 정보 (ID: <span id="detailId">1</span>)</h3>
+      <button onclick="closeModal()" style="border:none; background:none; font-size:20px; cursor:pointer;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label class="json-label">변경 전 (Before Value)</label>
+        <div class="json-view" id="beforeJson">{
+          "id": "EMP002",
+          "name": "이지은",
+          "role": "ROLE_USER",
+          "dept": "프론트팀",
+          "status": "ACTIVE"
+          }</div>
+      </div>
+      <div>
+        <label class="json-label">변경 후 (After Value)</label>
+        <div class="json-view" id="afterJson" style="color: #a6e22e;">{
+          "id": "EMP002",
+          "name": "이지은",
+          "role": "ROLE_DEPT_MANAGER",
+          "dept": "프론트팀",
+          "status": "ACTIVE"
+          }</div>
+      </div>
+    </div>
+    <div style="padding: 20px; border-top: 1px solid var(--border-color); text-align: right;">
+      <button class="btn-search" style="background: var(--jira-gray); color: var(--text-main);" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showLogDetail(id) {
+    document.getElementById('detailId').innerText = id;
+    document.getElementById('logModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('logModal').style.display = 'none';
+  }
+
+  function exportCSV() {
+    alert('현재 필터링된 로그를 CSV로 추출합니다.');
+  }
+
+  // 모달 외 영역 클릭 시 닫기
+  window.onclick = function(event) {
+    const modal = document.getElementById('logModal');
+    if (event.target == modal) {
+      closeModal();
+    }
+  }
+</script>
+</body>
+</html>

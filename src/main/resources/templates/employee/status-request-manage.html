@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<th:block layout:fragment="head-extra">
+    <title>OfficeMate - 상태 신청 관리</title>
+    <link rel="stylesheet" th:href="@{/css/employee/status-request-manage.css}">
+</th:block>
+
+<div layout:fragment="content" class="status-manage-container">
+    <!-- 상태 신청 관리 화면 제목과 새로고침 버튼 영역 -->
+    <div class="page-header">
+        <h1 class="page-title">상태 신청 관리</h1>
+        <div class="toolbar">
+            <button type="button" class="icon-btn" title="새로고침" onclick="loadPendingRequests()">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 신청 처리 성공/실패 메시지를 표시하는 영역 -->
+    <div id="status-request-message" class="message-area"></div>
+
+    <!-- 승인 대기 상태 신청 목록을 표시하는 테이블 영역 -->
+    <section class="request-panel">
+        <div class="request-table-wrapper">
+            <table class="request-table">
+                <thead>
+                <tr>
+                    <th>신청자</th>
+                    <th>신청 유형</th>
+                    <th>현재 상태</th>
+                    <th>신청일</th>
+                    <th>사유</th>
+                    <th>처리</th>
+                </tr>
+                </thead>
+                <tbody id="pending-request-body">
+                <tr>
+                    <td colspan="6" class="empty-state">승인 대기 신청을 불러오는 중입니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 승인 또는 반려 코멘트를 입력하고 처리 요청을 보내는 모달 영역 -->
+    <div id="decision-modal" class="modal-backdrop" role="dialog" aria-modal="true"
+         aria-labelledby="decision-modal-title">
+        <div class="decision-modal">
+            <div class="modal-header">
+                <h2 id="decision-modal-title" class="modal-title">신청 처리</h2>
+                <button type="button" class="icon-btn" title="닫기" onclick="closeDecisionModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="decision-comment" class="form-label">처리 코멘트</label>
+                <textarea id="decision-comment" class="form-textarea"
+                          maxlength="2000"
+                          placeholder="승인 또는 반려 사유를 남겨주세요."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn cancel-btn" onclick="closeDecisionModal()">취소</button>
+                <button type="button" class="modal-btn confirm-btn" id="decision-confirm-btn"
+                        onclick="submitDecision()">확인
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/employee/status-request-manage.js}"></script>
+</th:block>
+</html>

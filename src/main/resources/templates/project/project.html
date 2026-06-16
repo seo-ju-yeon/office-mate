@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<th:block layout:fragment="head-extra">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/project/project.css}">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold text-dark">프로젝트 관리</h2>
+            <p class="text-muted mb-0">현재 진행 중인 프로젝트를 확인하고 팀원을 관리하세요.</p>
+        </div>
+        <button class="btn btn-primary fw-bold" onclick="openCreateProjectModal()">
+            <i data-lucide="plus-circle" class="me-1" style="width:18px; margin-bottom:2px;"></i> 프로젝트 생성
+        </button>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="projectStatusTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active fw-bold" onclick="filterByTab('ACTIVE')">
+                진행 중 <span id="count-active" class="badge bg-primary ms-1">0</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-bold text-secondary" onclick="filterByTab('ON_HOLD')">
+                보류 <span id="count-hold" class="badge bg-secondary ms-1">0</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-bold text-success" onclick="filterByTab('FINISHED')">
+                완료 <span id="count-finished" class="badge bg-success ms-1">0</span>
+            </button>
+        </li>
+    </ul>
+
+    <div id="projectContainer" class="project-grid">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createProjectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0 p-4">
+                    <h5 class="modal-title fw-bold">새 프로젝트 생성</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">프로젝트 명</label>
+                        <input type="text" id="newProjectName" class="form-control" placeholder="프로젝트 제목을 입력하세요">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">시작일</label>
+                            <input type="date" id="newProjectStart" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">종료일</label>
+                            <input type="date" id="newProjectEnd" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">프로젝트 상세 설명</label>
+                        <textarea id="newProjectDescription" class="form-control" rows="3"
+                                  placeholder="프로젝트에 대한 간략한 설명을 입력하세요"></textarea>
+                    </div>
+
+                    <div class="mb-3 p-3 bg-light rounded-3">
+                        <label class="form-label small fw-bold text-primary">프로젝트 관리자 지정</label>
+                        <div class="row g-2">
+                            <div class="col-5">
+                                <select id="newProjectDeptFilter" class="form-select form-select-sm"
+                                        onchange="filterManagerEmployees()">
+                                    <option value="">전체 부서</option>
+                                    <option value="BACKEND">백엔드팀</option>
+                                    <option value="FRONTEND">프론트엔드팀</option>
+                                    <option value="MANAGEMENT_SUPPORT">경영지원팀</option>
+                                    <option value="MARKETING">마케팅팀</option>
+                                    <option value="DB_MANAGEMENT">DB관리팀</option>
+                                </select>
+                            </div>
+                            <div class="col-7">
+                                <select id="newProjectManagerSelect" class="form-select form-select-sm">
+                                    <option value="">관리자를 선택하세요</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-text mt-2" style="font-size: 0.75rem;">관리자로 지정된 인원은 프로젝트 멤버로 자동 추가됩니다.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary fw-bold" onclick="createProject()">생성하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="projectDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content modal-xl-custom">
+                <div class="modal-header border-bottom-0 p-4 pb-0">
+                    <div class="d-flex align-items-center gap-3 w-100">
+                        <h5 class="modal-title fw-bold mb-0">
+                            <i data-lucide="clipboard-list" class="me-2"></i>
+                            <span id="modalProjectName">프로젝트 상세 관리</span>
+                        </h5>
+                        <select id="modalProjectStatus" class="form-select form-select-sm" style="width: 130px;"
+                                onchange="updateProjectStatus()">
+                            <option value="READY">준비</option>
+                            <option value="IN_PROGRESS">진행 중</option>
+                            <option value="DELAYED">지연</option>
+                            <option value="ON_HOLD">보류</option>
+                            <option value="DONE">완료</option>
+                        </select>
+
+                        <button class="btn btn-sm btn-outline-primary fw-bold ms-auto" onclick="openProjectAllSchedule()">
+                            <i data-lucide="calendar-days" style="width:16px; margin-right:4px; margin-bottom:2px;"></i>전체 일정 보기
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row h-100">
+                        <div class="col-md-5 border-end d-flex flex-column h-100">
+                            <div class="filter-section">
+                                <label class="form-label small fw-bold text-primary">새 팀원 초대</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <select id="deptFilter" class="form-select form-select-sm"
+                                                onchange="filterEmployees()">
+                                            <option value="">전체 부서</option>
+                                            <option value="BACKEND">백엔드팀</option>
+                                            <option value="FRONTEND">프론트엔드팀</option>
+                                            <option value="MANAGEMENT_SUPPORT">경영지원팀</option>
+                                            <option value="MARKETING">마케팅팀</option>
+                                            <option value="DB_MANAGEMENT">DB관리팀</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <select id="employeeSelect" class="form-select form-select-sm">
+                                            <option value="">직원을 선택하세요</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button class="btn btn-primary btn-sm w-100 fw-bold"
+                                                onclick="addProjectMember()">추가
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label class="form-label small fw-bold text-secondary mb-2">
+                                참여 인원 (클릭 시 업무 관리)
+                                <span id="memberCount" class="badge bg-secondary ms-1"
+                                      style="font-size: 0.7rem;">0</span>
+                            </label>
+                            <div id="memberListContainer" class="bg-white"></div>
+                        </div>
+
+                        <div class="col-md-7 d-flex flex-column h-100">
+                            <div id="taskManagementSection" class="flex-column h-100" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0 text-dark">
+                                        <span id="selectedMemberName" class="text-primary"></span> 님의 업무 현황
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-info fw-bold" onclick="openMemberScheduleModal()">
+                                        <i data-lucide="calendar" style="width:14px; margin-right:4px; margin-bottom:2px;"></i>팀원 일정
+                                    </button>
+                                </div>
+
+                                <div class="card border-0 bg-light mb-4">
+                                    <div class="card-body p-3">
+                                        <label class="form-label small fw-bold">새 업무 할당</label>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-md-12">
+                                                <input type="text" id="taskTitleInput"
+                                                       class="form-control form-control-sm mb-2"
+                                                       placeholder="업무 제목을 입력하세요">
+                                                <textarea id="taskDescInput" class="form-control form-control-sm"
+                                                          rows="2" placeholder="상세 설명을 입력하세요 (선택 사항)"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text"><i data-lucide="calendar"
+                                                                                      style="width:14px;"></i></span>
+                                                    <input type="date" id="taskDueDateInput" class="form-control"
+                                                           title="마감일 선택">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <select id="taskPriorityInput" class="form-select form-select-sm">
+                                                    <option value="NORMAL">보통</option>
+                                                    <option value="HIGH">높음</option>
+                                                    <option value="LOW">낮음</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-dark btn-sm w-100 fw-bold"
+                                                        onclick="assignTask()">할당
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <ul class="nav nav-pills nav-fill mb-3 bg-light rounded-2 p-1" id="taskStatusTabs"
+                                    style="font-size: 0.8rem;">
+                                    <li class="nav-item">
+                                        <button class="nav-link active py-1 fw-bold"
+                                                onclick="filterTasksByStatus('ALL')">전체
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-1 fw-bold" onclick="filterTasksByStatus('TODO')">할 일</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-1 fw-bold"
+                                                onclick="filterTasksByStatus('IN_PROGRESS')">진행 중
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-1 fw-bold" onclick="filterTasksByStatus('DONE')">완료
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <div id="memberTaskList"></div>
+                            </div>
+
+                            <div id="taskPlaceholder"
+                                 class="h-100 d-flex flex-column align-items-center justify-content-center text-muted py-5">
+                                <i data-lucide="user-check" style="width: 48px; height: 48px;"
+                                   class="mb-2 opacity-25"></i>
+                                <p>팀원을 선택하여 업무를 관리하세요.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="memberScheduleModal" tabindex="-1" style="z-index: 1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light p-3">
+                    <h5 class="modal-title fw-bold fs-6">
+                        <i data-lucide="calendar" style="width:18px; margin-bottom: 2px;"></i>
+                        <span id="scheduleModalTitle">팀원 일정 조회</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div id="memberCalendar" style="min-height: 450px;"></div>
+                </div>
+                <div class="modal-footer p-2 bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm fw-bold" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-primary btn-sm fw-bold" data-bs-dismiss="modal" onclick="setTimeout(() => document.getElementById('taskTitleInput').focus(), 400)">업무 배정하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="projectScheduleModal" tabindex="-1" style="z-index: 1060;">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white py-3 border-bottom-0">
+                    <h5 class="modal-title d-flex align-items-center gap-2 fw-bold" id="projectScheduleModalTitle">
+                        <i data-lucide="calendar-days"></i> 프로젝트 전체 일정 및 타임라인
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div id="projectCalendar" class="p-3 bg-white rounded shadow-sm"></div>
+                </div>
+                <div class="modal-footer bg-white py-2 border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm fw-bold px-4" data-bs-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="calendarEventDetailModal" tabindex="-1" style="z-index: 1070;">
+        <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 400px;">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-light p-3 border-bottom-0">
+                    <h6 class="modal-title fw-bold text-dark">
+                        <i data-lucide="info" class="me-1 text-secondary" style="width:16px; margin-bottom:2px;"></i>일정 상세 정보
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 pt-2">
+                    <div class="mb-3">
+                        <span id="eventDetailBadge" class="badge mb-2" style="font-size: 0.75rem; padding: 4px 8px;">분류</span>
+                        <h5 id="eventDetailTitle" class="fw-bold text-dark lh-base mb-1">일정 제목</h5>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 text-muted small mb-2 bg-light p-2 rounded-2">
+                        <i data-lucide="calendar-days" class="text-primary" style="width: 14px; height: 14px;"></i>
+                        <span class="fw-bold text-secondary">기한 / 기간 :</span>
+                        <span id="eventDetailDate" class="text-dark fw-medium">2026-05-19</span>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">상세 내용 설명</label>
+                        <div class="p-2 border rounded-2 bg-white" style="min-height: 80px;">
+                            <p id="eventDetailDesc" class="mb-0 small text-secondary" style="white-space: pre-wrap; word-break: break-all; max-height: 150px; overflow-y: auto;"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-2 border-top-0 bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm fw-bold px-3" data-bs-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/project/project.js}"></script>
+</th:block>
+</html>

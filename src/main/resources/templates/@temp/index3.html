@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>OfficeMate - Professional Workflow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            /* 1. 어둡다는 피드백 반영: 배경을 살짝 올리고 액센트 컬러 보정 */
+            --bg-color: #0a1221;
+            --primary-accent: #4C9AFF; /* 더 밝은 스카이 블루 계열로 변경 */
+            --text-main: #FFFFFF;
+            --tagline-color: #B3BAC5;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            overflow: hidden;
+        }
+
+        #canvas-network {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            /* 캔버스 자체에 미세한 글로우 효과 */
+            filter: blur(0.5px);
+        }
+
+        .hero-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: var(--text-main);
+            /* 중앙부를 더 밝게 하여 시선 집중 */
+            background: radial-gradient(circle at center, rgba(76, 154, 255, 0.15) 0%, transparent 70%);
+            text-align: center;
+        }
+
+        .brand-logo {
+            font-size: clamp(2.5rem, 8vw, 4rem); /* 창 크기에 따라 폰트 크기 가변 */
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin: 0;
+            /* 텍스트 가독성을 위해 그림자 강화 */
+            text-shadow: 0 0 30px rgba(76, 154, 255, 0.6);
+        }
+
+        .brand-logo span {
+            color: var(--primary-accent);
+        }
+
+        .tagline {
+            font-size: 1.1rem;
+            color: var(--tagline-color);
+            margin-top: 20px;
+            font-weight: 400;
+            line-height: 1.6;
+            word-break: keep-all; /* 한글 가독성 */
+        }
+
+        .btn-entry {
+            margin-top: 50px;
+            padding: 18px 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--primary-accent); /* 선을 더 두껍게 */
+            color: white;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 50px; /* 더 둥글게 디자인 변경 */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-entry:hover {
+            background: var(--primary-accent);
+            box-shadow: 0 0 40px rgba(76, 154, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .system-info {
+            position: absolute;
+            bottom: 30px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas-network"></canvas>
+
+<div class="hero-container">
+    <h1 class="brand-logo">Office<span>Mate</span></h1>
+    <p class="tagline">기술로 완성하는 투명한 업무 환경<br><span style="font-size: 0.9rem; opacity: 0.7;">사내 사무 지원 및 효율적인 부서 간 소통을 위한 통합 플랫폼</span>
+    </p>
+
+    <a href="/login" class="btn-entry" id="entry-btn">
+        시스템 접속하기
+    </a>
+
+    <div class="system-info">SECURED BY JWT & PGVECTOR</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas-network');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    // 창 크기에 비례하여 파티클 개수 조절
+    function getParticleCount() {
+        return Math.floor((window.innerWidth * window.innerHeight) / 15000);
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // 창 크기가 바뀔 때마다 파티클 재배치 (사이언틱한 이모션 대응)
+        init();
+    }
+
+    window.addEventListener('resize', debounce(resizeCanvas, 100));
+
+    // 리사이즈 성능 최적화용 디바운스
+    function debounce(func, wait) {
+        let timeout;
+        return function () {
+            clearTimeout(timeout);
+            timeout = setTimeout(func, wait);
+        };
+    }
+
+    class Particle {
+        constructor() {
+            this.init();
+        }
+
+        init() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.vx = (Math.random() - 0.5) * 0.8;
+            this.vy = (Math.random() - 0.5) * 0.8;
+            this.radius = Math.random() * 2 + 1;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#4C9AFF';
+            ctx.fill();
+        }
+    }
+
+    function init() {
+        particles = [];
+        const count = getParticleCount();
+        for (let i = 0; i < count; i++) {
+            particles.push(new Particle());
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 연결 선 거리 기준도 창 너비에 따라 일부 조정
+        const maxDist = window.innerWidth < 768 ? 100 : 150;
+
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < maxDist) {
+                    ctx.beginPath();
+                    // 선의 밝기를 더 높임 (가독성 개선)
+                    ctx.strokeStyle = `rgba(76, 154, 255, ${(1 - dist / maxDist) * 0.5})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    resizeCanvas();
+    animate();
+
+    // 세션 체크 로직
+    const token = localStorage.getItem('accessToken');
+    const entryBtn = document.getElementById('entry-btn');
+    if (token) {
+        entryBtn.innerText = "대시보드 바로가기";
+        entryBtn.href = "/dashboard";
+    }
+</script>
+</body>
+</html>

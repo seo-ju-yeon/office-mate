@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.dashboard.mapper.NotificationMapper">
+
+    <select id="selectUnreadTaskNotification" resultType="map">
+        SELECT id,
+               title,
+               message,
+               ref_type   AS "refType",  ref_id     AS "refId",
+               created_at AS "createdAt"
+        FROM notification
+        WHERE employee_no = #{empNo}
+          AND is_read = false
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <update id="updateNotificationRead">
+        UPDATE notification
+        SET is_read = true
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertNotification">
+        INSERT INTO notification (employee_no,
+                                  title,
+                                  message,
+                                  ref_type,
+                                  ref_id,
+                                  is_read,
+                                  created_at)
+        VALUES (#{employeeNo},
+                #{title},
+                #{message},
+                CAST(#{refType} AS notification_ref_type),
+                #{refId},
+                false,
+                NOW())
+    </insert>
+
+</mapper>

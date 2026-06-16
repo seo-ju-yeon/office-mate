@@ -1,0 +1,358 @@
+/* 프로젝트 그리드 및 카드 디자인 */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+/* 개별 프로젝트 카드 디자인 */
+.project-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* 프로젝트 상태 표시 (Badge) */
+.status-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+/* 프로젝트 전체 진척률 바 */
+.progress-bar-bg {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+/* 실제 진행률을 나타내는 채워지는 영역 */
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    transition: width 0.5s ease;
+}
+
+/* 정보 아이템 레이아웃 (아이콘 + 텍스트) */
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+/* 상세 보기 버튼 스타일 */
+.btn-detail {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: all 0.2s;
+}
+
+/* 상세 버튼 마우스 호버 효과 */
+.btn-detail:hover {
+    background: #e2e8f0;
+}
+
+/* 모달 공통 및 프로젝트 상세 전용 스타일 */
+.modal {
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1060 !important;
+}
+
+/* 상세 모달용 커스텀 높이 및 최소 크기 */
+.modal-xl-custom {
+    height: 85vh;
+    min-height: 600px;
+}
+
+/* 모달 본체 디자인 */
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* 모달 바디 레이아웃 */
+.modal-body {
+    overflow-y: auto; /* 내용이 많아지면 내부 스크롤 허용 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 모달 바디 안의 행(row)이 남는 공간을 모두 차지하도록 설정 */
+.modal-body > .row {
+    flex: 1;
+}
+
+/* 상단 직원 필터링 영역 */
+.filter-section {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+/* 참여 인원 리스트 개별 항목 */
+.member-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+/* 항목 마우스 호버 효과 */
+.member-item:hover {
+    background-color: #f1f5f9;
+}
+
+/* 멤버 선택(활성화) 시 스타일 */
+.member-item.active {
+    background-color: #e0e7ff;
+    border-left: 4px solid #4338ca;
+}
+
+/* 멤버 이름 앞의 아바타 아이콘(약어 표시용) */
+.member-avatar {
+    width: 35px;
+    height: 35px;
+    background: #e0e7ff;
+    color: #4338ca;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+/* 멤버 제외 버튼 스타일 */
+.btn-remove-member {
+    color: #f87171;
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+/* 삭제 버튼 마우스 호버 시 더 붉게 표시 */
+.btn-remove-member:hover {
+    color: #dc2626;
+}
+
+/* 멤버 리스트가 고정된 높이에서 스크롤되도록 설정 */
+#memberListContainer {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+/* 업무(Task) 리스트 스크롤 영역 */
+#memberTaskList {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 업무 리스트 스타일 */
+.task-item {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: transform 0.2s;
+}
+
+/* 개별 업무(Task) 항목 디자인 */
+.task-item:hover {
+    transform: translateY(-2px);
+}
+
+/* 날짜 클릭 시 수정 가능한 텍스트 표시 */
+.task-date-display {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+/* 날짜 텍스트 호버 시 배경 변화 */
+.task-date-display:hover {
+    background-color: #fee2e2;
+}
+
+/* 실제 날짜 입력창(Input) 스타일 */
+.task-date-input {
+    font-size: 0.7rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 1px 3px;
+    width: 110px;
+    outline: none;
+}
+
+/* 전체 스크롤바 너비 설정 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* 스크롤바 움직이는 막대 디자인 */
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* 달력 내부의 모든 날짜 숫자, 요일, 제목의 파란색 텍스트 및 밑줄 제거 */
+#memberCalendar a {
+    color: #1e293b !important;       /* 차분한 다크 그레이 색상 */
+    text-decoration: none !important; /* 밑줄 강제 삭제 */
+}
+
+/* 오늘 날짜 숫자만 강조 효과 (원할 경우) */
+#memberCalendar .fc-day-today a {
+    color: #3b82f6 !important;       /* 오늘 날짜는 세련된 블루 */
+    font-weight: 700 !important;
+}
+
+/* 캘린더 상단 헤더 타이틀(년, 월) 디자인 정돈 */
+#memberCalendar .fc-toolbar-title {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+/* 헤더 버튼(이전, 다음, 오늘, 주/월 탭) 스타일을 부트스트랩 톤과 매핑 */
+#memberCalendar .fc-button {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    text-transform: capitalize !important;
+    padding: 5px 10px !important;
+}
+
+/* 버튼 마우스 호버 시 효과 */
+#memberCalendar .fc-button:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+/* 활성화된 버튼 (현재 선택된 탭) */
+#memberCalendar .fc-button-active {
+    background-color: #64748b !important;
+    border-color: #64748b !important;
+    color: #ffffff !important;
+}
+
+/* 달력 내부 요일 헤더(월, 화, 수...) 영역 배경 및 구분선 연하게 조정 */
+#memberCalendar .fc-col-header-cell {
+    background-color: #f8fafc !important;
+    padding: 8px 0 !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* 일요일/토요일 날짜 색상 미세 조정 (선택 사항) */
+#memberCalendar .fc-day-sun a {
+    color: #ef4444 !important; /* 일요일은 붉은 톤 */
+}
+#memberCalendar .fc-day-sat a {
+    color: #3b82f6 !important; /* 토요일은 푸른 톤 */
+}
+
+/* --- 달력 링크 및 텍스트 스타일 수정 (밑줄 제거 및 색상 고정) --- */
+
+/* 달력 내부의 모든 날짜 숫자, 요일, 제목의 파란색 텍스트 및 밑줄 제거 */
+#memberCalendar a,
+#projectCalendar a {
+    color: #1e293b !important;       /* 차분한 다크 그레이 색상 */
+    text-decoration: none !important; /* 밑줄 강제 삭제 */
+    cursor: default !important;      /* 마우스 커서를 기본 화살표로 */
+}
+
+/* 오늘 날짜 숫자 강조 (필요 시) */
+#memberCalendar .fc-day-today a,
+#projectCalendar .fc-day-today a {
+    color: #3b82f6 !important;       /* 오늘 날짜는 세련된 블루 */
+    font-weight: 700 !important;
+}
+
+/* 캘린더 상단 헤더 타이틀(년, 월) */
+#memberCalendar .fc-toolbar-title,
+#projectCalendar .fc-toolbar-title {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+/* 헤더 버튼(이전, 다음, 오늘, 주/월 탭) 디자인 */
+#memberCalendar .fc-button,
+#projectCalendar .fc-button {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    padding: 5px 10px !important;
+}
+
+/* 버튼 호버 효과 */
+#memberCalendar .fc-button:hover,
+#projectCalendar .fc-button:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+/* 활성화된 버튼 */
+#memberCalendar .fc-button-active,
+#projectCalendar .fc-button-active {
+    background-color: #64748b !important;
+    border-color: #64748b !important;
+    color: #ffffff !important;
+}
+
+/* 달력 내부 요일 헤더 */
+#memberCalendar .fc-col-header-cell,
+#projectCalendar .fc-col-header-cell {
+    background-color: #f8fafc !important;
+    padding: 8px 0 !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* 일정 이벤트 바 디자인 */
+.fc-event {
+    border-radius: 4px !important;
+    padding: 2px 4px !important;
+    font-size: 0.75rem !important;
+    border: none !important;
+    cursor: pointer !important;
+}

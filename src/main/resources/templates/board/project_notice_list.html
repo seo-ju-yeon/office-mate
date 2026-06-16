@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<head>
+    <th:block layout:fragment="head-extra">
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <link rel="stylesheet" th:href="@{/css/board/project_notice_list.css}">
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="wrap">
+        <div class="main">
+            <div class="hd" style="flex-direction:column; align-items:flex-start; gap:12px;">
+                <div style="width:100%; display:flex; align-items:center; justify-content:space-between;">
+                    <span class="hd-title">프로젝트 공지사항</span>
+                    <button class="wb" onclick="goToProjectNoticeWrite()">+ 글쓰기</button>
+                </div>
+                <!-- 상태 탭 -->
+                <div class="project-tabs" id="statusTabs" style="margin-bottom:8px;"></div>
+                <!-- 프로젝트 드롭다운 -->
+                <select id="projectDropdown"
+                        onchange="onDropdownChange(this)"
+                        style="width:260px; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:14px;">
+                    <option value="">프로젝트 선택</option>
+                </select>
+            </div>
+
+            <div style="flex: 1;">
+                <table id="projectNoticeTable">
+                    <thead>
+                    <tr>
+                        <th style="width:220px">프로젝트</th>
+                        <th>제목</th>
+                        <th style="width:120px">작성자</th>
+                        <th style="width:100px">작성일</th>
+                        <th style="width:68px; text-align:right">조회수</th>
+                    </tr>
+                    </thead>
+                    <tbody id="projectNoticeBody">
+                    <tr>
+                        <td colspan="5" class="empty">불러오는 중...</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bot">
+                <div class="pgr" id="pagination"></div>
+                <div class="sr">
+                    <select id="searchType">
+                        <option value="t">제목</option>
+                        <option value="w">작성자</option>
+                    </select>
+                    <input type="text" id="searchKeyword" placeholder="검색어를 입력해주세요"/>
+                    <button type="button" onclick="loadList(1)">검색</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 권한 없음 모달 -->
+    <div id="noAuthModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:32px 36px; text-align:center; min-width:280px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+            <div style="font-size:16px; font-weight:700; color:#1a1a1a; margin-bottom:8px;">접근 권한 없음</div>
+            <div style="font-size:14px; color:#888; margin-bottom:24px;">프로젝트 공지 작성은 관리자만 가능합니다.</div>
+            <button onclick="document.getElementById('noAuthModal').style.display='none'"
+                    style="padding:9px 28px; background:#1976D2; color:#fff; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer;">
+                확인
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/board/project_notice_list.js}"></script>
+</th:block>
+</html>

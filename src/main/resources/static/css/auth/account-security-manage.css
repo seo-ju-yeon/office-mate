@@ -1,0 +1,243 @@
+/* 계정 보안 관리 화면의 전체 콘텐츠 폭과 세로 배치를 담당 */
+.account-security-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.page-title {
+    margin: 0;
+    color: #172b4d;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+/* 검색어, 잠긴 계정 필터, 조회 버튼을 한 줄에 배치하는 상단 도구 영역 */
+.toolbar {
+    border: 1px solid #dfe1e6;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: minmax(220px, 360px) auto auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-input {
+    height: 40px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    padding: 0 12px;
+    color: #172b4d;
+    font-size: 14px;
+}
+
+/* 잠긴 계정만 조회할 때 사용하는 체크박스 라벨 */
+.filter-toggle {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #172b4d;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.filter-toggle input {
+    width: 16px;
+    height: 16px;
+}
+
+/* 조회/정상/잠금 해제 버튼의 공통 크기와 정렬을 맞춤 */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    height: 40px;
+    border-radius: 4px;
+    padding: 0 14px;
+    cursor: pointer;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    border: 0;
+    background: #0052cc;
+    color: #ffffff;
+}
+
+.btn-secondary {
+    border: 1px solid #dfe1e6;
+    background: #ffffff;
+    color: #172b4d;
+}
+
+.btn-danger {
+    border: 0;
+    background: #de350b;
+    color: #ffffff;
+}
+
+.btn-secondary:disabled {
+    cursor: not-allowed;
+    background: #f4f5f7;
+    color: #6b778c;
+}
+
+/* 조회 성공/실패 메시지를 표시하는 영역 */
+.message-area {
+    min-height: 20px;
+    color: #172b4d;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.message-area.error {
+    color: #de350b;
+}
+
+.message-area.success {
+    color: #00875a;
+}
+
+/* 조회 계정, 잠긴 계정, 정상 계정 수를 보여주는 요약 카드 행 */
+.summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.summary-item {
+    border: 1px solid #dfe1e6;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 14px 16px;
+}
+
+.summary-label {
+    color: #6b778c;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.summary-value {
+    margin-top: 6px;
+    color: #172b4d;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+/* 계정 보안 목록 테이블을 감싸는 패널 */
+.table-panel {
+    border: 1px solid #dfe1e6;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.security-table {
+    width: 100%;
+    min-width: 1060px;
+    border-collapse: collapse;
+}
+
+.security-table th,
+.security-table td {
+    border-bottom: 1px solid #f4f5f7;
+    padding: 13px 14px;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+.security-table th {
+    background: #fafbfc;
+    color: #6b778c;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.employee-no {
+    color: #172b4d;
+    font-weight: 900;
+}
+
+.employee-meta {
+    margin-top: 3px;
+    color: #6b778c;
+    font-size: 12px;
+}
+
+/* 계정 잠금 여부를 한눈에 구분하기 위한 상태 배지 */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-width: 64px;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.status-badge.locked {
+    background: #ffebe6;
+    color: #bf2600;
+}
+
+.status-badge.normal {
+    background: #e3fcef;
+    color: #006644;
+}
+
+.empty-row {
+    padding: 34px 16px;
+    text-align: center;
+    color: #6b778c;
+    font-weight: 700;
+}
+
+/* 계정 보안 목록의 페이지 이동 버튼과 페이지 정보를 배치하는 영역 */
+.pagination-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border-top: 1px solid #f4f5f7;
+}
+
+.page-info {
+    min-width: 120px;
+    color: #6b778c;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+}
+
+/* 작은 화면에서는 검색 도구와 요약 영역을 세로로 쌓아 가독성을 확보 */
+@media (max-width: 760px) {
+    .toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-row {
+        grid-template-columns: 1fr;
+    }
+
+    .pagination-row {
+        justify-content: center;
+    }
+}

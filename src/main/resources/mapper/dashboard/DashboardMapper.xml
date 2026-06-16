@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.dashboard.mapper.DashboardMapper">
+    <select id="getTaskStatistics" resultType="map">
+        SELECT
+            COUNT(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 END) as "inProgress",
+            COUNT(CASE WHEN t.due_on = CURRENT_DATE AND t.status != 'DONE' THEN 1 END) as "dueToday",
+            COUNT(CASE WHEN t.due_on <![CDATA[ < ]]> CURRENT_DATE AND t.status != 'DONE' THEN 1 END) as "overdue"
+        FROM project_task t
+                 INNER JOIN project p ON t.project_id = p.id
+        WHERE t.assignee_no = #{empNo}
+          AND p.status NOT IN ('ON_HOLD', 'DONE', 'CANCELED')
+    </select>
+
+    <select id="getMyTaskList" resultType="office_mate_2605.project.dto.TaskResponseDTO">
+        SELECT
+            t.id,
+            t.project_id as projectId,
+            p.name as projectName,
+            t.title,
+            t.description,  t.status,
+            t.progress_rate as progressRate,
+            t.due_on as dueOn,
+            t.priority,
+            e.name as assigneeName,
+            e.department as departmentName
+        FROM project_task t
+                 LEFT JOIN project p ON t.project_id = p.id
+                 LEFT JOIN employee e ON t.assignee_no = e.employee_no
+        WHERE t.assignee_no = #{empNo}
+          AND t.status != 'DONE'
+          AND p.status NOT IN ('ON_HOLD', 'DONE', 'CANCELED')
+        ORDER BY t.due_on ASC
+    </select>
+</mapper>

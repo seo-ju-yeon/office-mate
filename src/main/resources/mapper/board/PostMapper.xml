@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="office_mate_2605.board.mapper.PostMapper">
+
+    <!--
+        전체 게시글 목록 조회
+        - 공지사항(board_id=1): 전체 노출 (페이징 없음)
+        - 자유게시판(board_id!=1): 페이징 적용 (서브쿼리로 먼저 페이징 후 집계)
+        - PostgreSQL은 UNION ALL 내부에 ORDER BY 불가 → 자유게시판을 서브쿼리로 감싸서 해
+        - 일반글 서브쿼리의 employee 별칭을 ie로 분리 → 바깥 쿼리의 e와 충돌 방지
+        - 검색: type='t'(제목, 기본값) / type='w'(작성자)
+        - LIKE 조건: CONCAT 대신 문자열 연결 연산자 사용 (PostgreSQL UNION ALL 타입 추론 대응)
+    -->
+    <select id="selectAllPostList" resultType="office_mate_2605.board.dto.PostListItemDTO">
+        SELECT *
+        FROM (
+        /* 1. 상단 고정글: 1페이지에서만 노출 */
+        SELECT
+        p.id, p.title, p.board_id AS boardId, b.name AS boardName,
+        e.name AS authorName, p.view_count AS viewCount, p.posted_at AS postedAt,
+        p.is_pinned AS pinned,
+        COUNT(DISTINCT c.id) AS commentCount,
+        COUNT(DISTINCT a.id) AS attachmentCount,
+        1 AS sort_group
+        FROM post p
+        JOIN board b ON p.board_id = b.id
+        JOIN employee e ON p.author_no = e.employee_no
+        LEFT JOIN post_comment c ON c.post_id = p.id AND c.deleted_at IS NULL
+        LEFT JOIN post_attachment a ON a.post_id = p.id
+        WHERE p.is_pinned = true
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        AND b.project_id IS NULL
+        GROUP BY p.id, b.name, e.name
+        HAVING #{request.page} = 1
+
+        UNION ALL
+
+        /* 2. 일반글: 페이징 + 검색 적용 */
+        SELECT
+        paged.id, paged.title, paged.board_id AS boardId, b.name AS boardName,
+        e.name AS authorName, paged.view_count AS viewCount, paged.posted_at AS postedAt,
+        paged.is_pinned AS pinned,
+        COUNT(DISTINCT c.id) AS commentCount,
+        COUNT(DISTINCT a.id) AS attachmentCount,
+        2 AS sort_group
+        FROM (
+        SELECT p.id, p.title, p.board_id, p.author_no, p.view_count, p.posted_at, p.is_pinned
+        FROM post p
+        JOIN board b ON p.board_id = b.id
+        JOIN employee ie ON p.author_no = ie.employee_no
+        WHERE p.is_pinned = false
+        AND p.board_id != 1
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        AND b.project_id IS NULL
+        <if test="request.keyword != null and request.keyword != ''">
+            <choose>
+                <when test='request.type == "w"'>
+                    AND ie.name LIKE '%' || #{request.keyword}::text || '%'
+                </when>
+                <otherwise>
+                    AND p.title LIKE '%' || #{request.keyword}::text || '%'
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY p.posted_at DESC
+        LIMIT #{request.size} OFFSET #{request.offset}
+        ) paged
+        JOIN board b ON paged.board_id = b.id
+        JOIN employee e ON paged.author_no = e.employee_no
+        LEFT JOIN post_comment c ON c.post_id = paged.id AND c.deleted_at IS NULL
+        LEFT JOIN post_attachment a ON a.post_id = paged.id
+        GROUP BY paged.id, paged.title, paged.board_id, b.name, e.name,
+        paged.view_count, paged.posted_at, paged.is_pinned
+        ) combined
+        ORDER BY sort_group ASC, postedAt DESC
+    </select>
+
+    <!--
+        전체 게시글 수 — 자유게시판 일반글 건수만 카운트
+        공지글은 전체 페이지 노출이므로 페이징 계산에서 제외
+        작성자 검색을 위해 JOIN employee 추가
+    -->
+    <select id="countAllPostList" resultType="int">
+        SELECT COUNT(DISTINCT p.id)
+        FROM post p
+        JOIN board b ON p.board_id = b.id
+        JOIN employee e ON p.author_no = e.employee_no
+        WHERE p.is_pinned = false
+        AND p.board_id != 1
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        AND b.project_id IS NULL
+        <if test="request.keyword != null and request.keyword != ''">
+            <choose>
+                <when test='request.type == "w"'>
+                    AND e.name LIKE '%' || #{request.keyword}::text || '%'
+                </when>
+                <otherwise>
+                    AND p.title LIKE '%' || #{request.keyword}::text || '%'
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 게시글 목록 조회 (공지 or 자유게시판 단독) -->
+    <select id="selectPostList" resultType="office_mate_2605.board.dto.PostListItemDTO">
+        SELECT
+        p.id, p.title, e.name AS authorName, p.view_count AS viewCount,
+        p.posted_at AS postedAt, p.is_pinned AS pinned,
+        COUNT(DISTINCT c.id) AS commentCount,
+        COUNT(DISTINCT a.id) AS attachmentCount
+        FROM post p
+        JOIN employee e ON p.author_no = e.employee_no
+        LEFT JOIN post_comment c ON c.post_id = p.id AND c.deleted_at IS NULL
+        LEFT JOIN post_attachment a ON a.post_id = p.id
+        WHERE p.board_id = #{boardId}
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        <if test="request.keyword != null and request.keyword != ''">
+            <choose>
+                <when test='request.type == "w"'>
+                    AND e.name LIKE '%' || #{request.keyword}::text || '%'
+                </when>
+                <otherwise>
+                    AND p.title LIKE '%' || #{request.keyword}::text || '%'
+                </otherwise>
+            </choose>
+        </if>
+        GROUP BY p.id, e.name
+        ORDER BY p.posted_at DESC
+        LIMIT #{request.size} OFFSET #{request.offset}
+    </select>
+
+    <!-- 게시글 수 (공지 or 자유게시판 단독) -->
+    <select id="countPostList" resultType="int">
+        SELECT COUNT(DISTINCT p.id)
+        FROM post p
+        JOIN employee e ON p.author_no = e.employee_no
+        WHERE p.board_id = #{boardId}
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        <if test="request.keyword != null and request.keyword != ''">
+            <choose>
+                <when test='request.type == "w"'>
+                    AND e.name LIKE '%' || #{request.keyword}::text || '%'
+                </when>
+                <otherwise>
+                    AND p.title LIKE '%' || #{request.keyword}::text || '%'
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 대시보드용 공지사항 최신 N개 -->
+    <select id="selectRecentNotices" resultType="office_mate_2605.board.dto.PostListItemDTO">
+        SELECT
+            p.id,
+            p.title,
+            e.name          AS authorName,
+            p.view_count    AS viewCount,
+            p.posted_at     AS postedAt,
+            p.is_pinned     AS pinned,
+            COUNT(DISTINCT c.id) AS commentCount,
+            COUNT(DISTINCT a.id) AS attachmentCount
+        FROM post p
+                 JOIN employee e ON p.author_no = e.employee_no
+                 LEFT JOIN post_comment c ON c.post_id = p.id AND c.deleted_at IS NULL
+                 LEFT JOIN post_attachment a ON a.post_id = p.id
+        WHERE p.board_id = 1
+          AND p.status = 'PUBLISHED'
+          AND p.deleted_at IS NULL
+        GROUP BY p.id, e.name
+        ORDER BY p.posted_at DESC
+        LIMIT #{size}
+    </select>
+
+    <!--
+        프로젝트 공지 목록 조회
+        - 로그인한 직원(loginEmployeeNo)이 project_member로 속한 프로젝트의 공지글만 조회
+        - board.project_id IS NOT NULL: 프로젝트 전용 게시판만
+        - board.deleted_at IS NULL: 논리 삭제된 게시판(마감된 프로젝트) 제외
+        - 프로젝트명(projectName) 컬럼 포함 → 목록에서 어느 프로젝트 공지인지 구분
+        - 상단 고정글(is_pinned=true) 우선 정렬 후 최신순
+        - 검색: type='t'(제목, 기본값) / type='w'(작성자)
+    -->
+    <select id="selectProjectNoticeList" resultType="office_mate_2605.board.dto.PostListItemDTO">
+        SELECT
+        p.id,
+        p.title,
+        e.name              AS authorName,
+        p.view_count        AS viewCount,
+        p.posted_at         AS postedAt,
+        p.is_pinned         AS pinned,
+        pj.name             AS projectName,
+        COUNT(DISTINCT c.id) AS commentCount,
+        COUNT(DISTINCT a.id) AS attachmentCount
+        FROM post p
+        JOIN board b        ON b.id = p.board_id
+        JOIN project pj     ON pj.id = b.project_id
+        JOIN project_member pm ON pm.project_id = pj.id
+        JOIN employee e     ON e.employee_no = p.author_no
+        LEFT JOIN post_comment c   ON c.post_id = p.id AND c.deleted_at IS NULL
+        LEFT JOIN post_attachment a ON a.post_id = p.id
+        WHERE pm.employee_no = #{loginEmployeeNo}
+        AND b.type = 'NOTICE'
+        AND b.project_id IS NOT NULL
+        AND (b.deleted_at IS NULL OR pj.status IN ('DONE', 'CANCELED'))
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        <if test="request.projectId != null">
+            AND pj.id = #{request.projectId}
+        </if>
+        <if test="request.keyword != null and request.keyword != ''">
+            <choose>
+                <when test='request.type == "w"'>
+                    AND e.name LIKE '%' || #{request.keyword}::text || '%'
+                </when>
+                <otherwise>
+                    AND p.title LIKE '%' || #{request.keyword}::text || '%'
+                </otherwise>
+            </choose>
+        </if>
+        GROUP BY p.id, e.name, pj.name
+        ORDER BY p.is_pinned DESC, p.posted_at DESC
+        LIMIT #{request.size} OFFSET #{request.offset}
+    </select>
+
+    <!--
+        프로젝트 공지 게시글 수 — 페이징 계산용
+        selectProjectNoticeList 와 WHERE 조건 동일하게 유지
+    -->
+    <select id="countProjectNoticeList" resultType="int">
+        SELECT COUNT(DISTINCT p.id)
+        FROM post p
+        JOIN board b           ON b.id = p.board_id
+        JOIN project pj        ON pj.id = b.project_id
+        JOIN project_member pm ON pm.project_id = b.project_id
+        JOIN employee e        ON e.employee_no = p.author_no
+        WHERE pm.employee_no = #{loginEmployeeNo}
+        AND b.type = 'NOTICE'
+        AND b.project_id IS NOT NULL
+        AND (b.deleted_at IS NULL OR pj.status IN ('DONE', 'CANCELED'))
+        AND p.status = 'PUBLISHED'
+        AND p.deleted_at IS NULL
+        <if test="request.projectId != null">
+            AND pj.id = #{request.projectId}
+        </if>
+        <if test="request.keyword != null and request.keyword != ''">
+            <choose>
+                <when test='request.type == "w"'>
+                    AND e.name LIKE '%' || #{request.keyword}::text || '%'
+                </when>
+                <otherwise>
+                    AND p.title LIKE '%' || #{request.keyword}::text || '%'
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <resultMap id="postDetailResultMap" type="office_mate_2605.board.dto.PostDetailDTO">
+        <id     property="id"         column="id"/>
+        <result property="boardId"    column="boardId"/>
+        <result property="boardName"  column="boardName"/>
+        <result property="authorNo"   column="authorNo"/>
+        <result property="authorName" column="authorName"/>
+        <result property="title"      column="title"/>
+        <result property="content"    column="content"/>
+        <result property="pinned"     column="pinned"/>
+        <result property="viewCount"  column="viewCount"/>
+        <result property="postedAt"   column="postedAt"/>
+        <result property="editedAt"   column="editedAt"/>
+        <result property="editorName" column="editorName"/>
+        <collection property="attachments"
+                    ofType="office_mate_2605.board.dto.PostAttachmentDTO"
+                    notNullColumn="attachmentId">
+            <id     property="id"           column="attachmentId"/>
+            <result property="originalName" column="originalName"/>
+            <result property="storedPath"   column="storedPath"/>
+            <result property="contentType"  column="contentType"/>
+            <result property="fileSize"     column="fileSize"/>
+            <result property="uploadedAt"   column="uploadedAt"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectPostDetail" resultMap="postDetailResultMap">
+        SELECT
+            p.id,
+            p.board_id          AS boardId,
+            b.name              AS boardName,
+            p.author_no         AS authorNo,
+            e.name              AS authorName,
+            p.title,
+            p.content,
+            p.is_pinned         AS pinned,
+            p.view_count        AS viewCount,
+            p.posted_at         AS postedAt,
+            p.edited_at         AS editedAt,
+            editor.name         AS editorName,
+            pa.id               AS attachmentId,
+            pa.original_name    AS originalName,
+            pa.stored_path      AS storedPath,
+            pa.content_type     AS contentType,
+            pa.file_size        AS fileSize,
+            pa.uploaded_at      AS uploadedAt
+        FROM post p
+                 JOIN board b ON p.board_id = b.id
+                 JOIN employee e ON p.author_no = e.employee_no
+                 LEFT JOIN employee editor ON p.editor_no = editor.employee_no
+                 LEFT JOIN post_attachment pa ON pa.post_id = p.id
+        WHERE p.id = #{postId}
+          AND p.status = 'PUBLISHED'
+          AND p.deleted_at IS NULL
+    </select>
+
+    <!--
+        작성 폼 드롭다운용 — 로그인 직원이 속한 프로젝트 게시판 목록
+        - board.id(boardId)와 project.name(projectName) 반환
+        - project_member JOIN으로 내 프로젝트만 필터
+        - deleted_at IS NULL: 진행 중 게시판만 제외. DONE/CANCELED 상태는 deleted_at 있어도 조회
+    -->
+    <select id="selectProjectBoards" resultType="map">
+        SELECT
+            b.id        AS boardId,
+            p.id        AS projectId,
+            p.name      AS projectName,
+            p.status    AS projectStatus
+        FROM board b
+                 JOIN project p        ON p.id = b.project_id
+                 JOIN project_member pm ON pm.project_id = p.id
+        WHERE pm.employee_no = #{loginEmployeeNo}
+          AND b.type = 'NOTICE'
+          AND b.project_id IS NOT NULL
+          AND (b.deleted_at IS NULL OR p.status IN ('DONE', 'CANCELED'))
+        ORDER BY p.name
+    </select>
+    <!--
+            글쓰기 폼 드롭다운용 — 진행 중인 프로젝트 게시판 목록
+            - DONE, CANCELED 상태 프로젝트 제외 (완료/취소된 프로젝트에는 글쓰기 불가)
+            - deleted_at IS NULL: 논리 삭제된 게시판 제외
+        -->
+    <select id="selectWritableProjectBoards" resultType="map">
+        SELECT
+            b.id        AS boardId,
+            p.id        AS projectId,
+            p.name      AS projectName,
+            p.status    AS projectStatus
+        FROM board b
+                 JOIN project p        ON p.id = b.project_id
+                 JOIN project_member pm ON pm.project_id = p.id
+        WHERE pm.employee_no = #{loginEmployeeNo}
+          AND b.type = 'NOTICE'
+          AND b.project_id IS NOT NULL
+          AND b.deleted_at IS NULL
+          AND p.status NOT IN ('DONE', 'CANCELED')
+        ORDER BY p.name
+    </select>
+</mapper>

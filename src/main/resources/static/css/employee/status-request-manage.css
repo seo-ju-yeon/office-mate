@@ -1,0 +1,273 @@
+/* 상태 신청 관리 화면의 전체 콘텐츠 폭을 제한 */
+.status-manage-container {
+    max-width: 1180px;
+}
+
+/* 화면 제목과 새로고침 버튼을 배치하는 헤더 영역 */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 24px;
+    color: #172b4d;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 아이콘만 들어가는 공통 버튼 */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #172b4d;
+    cursor: pointer;
+}
+
+.icon-btn:hover {
+    background: #f4f5f7;
+}
+
+/* 승인 대기 신청 목록을 감싸는 패널 */
+.request-panel {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+}
+
+.request-table-wrapper {
+    overflow-x: auto;
+}
+
+.request-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.request-table th,
+.request-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #ebecf0;
+    text-align: left;
+    vertical-align: top;
+}
+
+.request-table th {
+    background: #f4f5f7;
+    color: #42526e;
+    font-weight: 700;
+}
+
+.request-table tr:last-child td {
+    border-bottom: none;
+}
+
+.employee-main {
+    font-weight: 700;
+    color: #172b4d;
+}
+
+.employee-sub {
+    margin-top: 3px;
+    color: #6b778c;
+    font-size: 12px;
+}
+
+.reason-cell {
+    max-width: 300px;
+    color: #172b4d;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* 휴직/퇴사/복직 신청 유형을 구분하는 배지 */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge.leave {
+    color: #0747a6;
+    background: #deebff;
+}
+
+.badge.resign {
+    color: #bf2600;
+    background: #ffebe6;
+}
+
+.badge.return {
+    color: #006644;
+    background: #e3fcef;
+}
+
+/* 승인/반려 버튼 묶음 */
+.action-group {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    height: 32px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.approve-btn {
+    border: 1px solid #00875a;
+    background: #e3fcef;
+    color: #006644;
+}
+
+.reject-btn {
+    border: 1px solid #ff8f73;
+    background: #ffebe6;
+    color: #bf2600;
+}
+
+.empty-state {
+    padding: 44px 16px;
+    color: #6b778c;
+    text-align: center;
+}
+
+/* 처리 결과와 오류 메시지를 표시하는 영역 */
+.message-area {
+    display: none;
+    margin-bottom: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.message-area.error {
+    display: block;
+    color: #bf2600;
+    background: #ffebe6;
+}
+
+.message-area.success {
+    display: block;
+    color: #006644;
+    background: #e3fcef;
+}
+
+/* 승인/반려 코멘트를 입력하는 모달 배경 */
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(9, 30, 66, 0.38);
+}
+
+.modal-backdrop.open {
+    display: flex;
+}
+
+.decision-modal {
+    width: min(520px, 100%);
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(9, 30, 66, 0.25);
+}
+
+.modal-header,
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #ebecf0;
+}
+
+.modal-footer {
+    justify-content: flex-end;
+    border-top: 1px solid #ebecf0;
+    border-bottom: none;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 17px;
+    color: #172b4d;
+}
+
+.modal-body {
+    padding: 18px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #6b778c;
+    font-weight: 700;
+}
+
+.form-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* 모달 하단 취소/확인 버튼 */
+.modal-btn {
+    min-width: 76px;
+    height: 36px;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    border: 1px solid #dfe1e6;
+    background: #ffffff;
+    color: #172b4d;
+}
+
+.confirm-btn {
+    border: none;
+    background: #0052cc;
+    color: #ffffff;
+}

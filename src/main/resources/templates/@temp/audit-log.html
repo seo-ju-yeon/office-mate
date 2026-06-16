@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>OfficeMate - 감사 로그</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #F4F5F7;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #0A1929;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-item label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #6B778C;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #FAFBFC;
+            padding: 12px;
+            font-size: 11px;
+            text-align: left;
+            color: #6B778C;
+            border-bottom: 2px solid #F4F5F7;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 13px;
+            border-bottom: 1px solid #F4F5F7;
+        }
+
+        /* 액션 뱃지 */
+        .act {
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .act-create {
+            background: #36B37E;
+        }
+
+        .act-read {
+            background: #0052CC;
+        }
+
+        .act-update {
+            background: #FFAB00;
+        }
+
+        .act-delete {
+            background: #FF5630;
+        }
+
+        .res-success {
+            color: #36B37E;
+            font-weight: bold;
+        }
+
+        .res-fail {
+            color: #FF5630;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <h3>OfficeMate</h3>
+    <p onclick="location.href='dashboard.html'" style="cursor:pointer;">🏠 대시보드</p>
+    <p onclick="location.href='employee-list.html'" style="cursor:pointer;">👥 직원 관리</p>
+    <p style="font-weight:bold; color:var(--jira-blue);">📜 감사 로그</p>
+</div>
+<div class="main">
+    <h2>감사 로그 조회 (Audit Log)</h2>
+
+    <div class="filter-section">
+        <div class="filter-item"><label>기간</label><input type="date" value="2026-04-21"></div>
+        <div class="filter-item"><label>액션</label>
+            <select>
+                <option>전체</option>
+                <option>CREATE</option>
+                <option>UPDATE</option>
+                <option>DELETE</option>
+            </select>
+        </div>
+        <div class="filter-item"><label>행위자 사번</label><input type="text"></div>
+        <div class="filter-item" style="justify-content:flex-end;">
+            <button style="background:#0052CC; color:white; border:none; padding:10px; border-radius:4px;">검색</button>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>타임스탬프</th>
+            <th>행위자</th>
+            <th>액션</th>
+            <th>리소스</th>
+            <th>IP</th>
+            <th>결과</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>2026-04-28 10:45:12</td>
+            <td>김민수(EMP001)</td>
+            <td><span class="act act-read">READ</span></td>
+            <td>EMPLOYEE_LIST</td>
+            <td>192.168.1.10</td>
+            <td><span class="res-success">SUCCESS</span></td>
+        </tr>
+        <tr>
+            <td>2026-04-28 09:30:05</td>
+            <td>이지은(EMP002)</td>
+            <td><span class="act act-update">UPDATE</span></td>
+            <td>PASSWORD</td>
+            <td>192.168.1.15</td>
+            <td><span class="res-success">SUCCESS</span></td>
+        </tr>
+        <tr>
+            <td>2026-04-27 15:20:44</td>
+            <td>박준혁(EMP003)</td>
+            <td><span class="act act-delete">DELETE</span></td>
+            <td>BOARD_POST</td>
+            <td>192.168.1.22</td>
+            <td><span class="res-fail">FAIL (UNAUTHORIZED)</span></td>
+        </tr>
+        </tbody>
+    </table>
+    <div style="margin-top:20px; text-align:right;">
+        <button style="background:#F4F5F7; border:1px solid #DFE1E6; padding:8px 15px; border-radius:4px; cursor:pointer;"
+                data-action="READ" data-resource="AUDIT_LOG_CSV">CSV 내보내기
+        </button>
+    </div>
+</div>
+</body>
+</html>

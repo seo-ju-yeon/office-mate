@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<th:block layout:fragment="head-extra">
+    <title>OfficeMate - 직원 등록</title>
+    <link rel="stylesheet" th:href="@{/css/employee/register.css}">
+</th:block>
+
+<div layout:fragment="content" class="employee-register-container">
+    <!-- 직원 등록 화면 제목과 중복확인 안내 영역 -->
+    <h1 class="page-title">직원 등록</h1>
+<!--    <p class="page-desc">사번 입력 후 중복 확인 검사를 거쳐야 직원 등록 버튼이 활성화 됩니다.</p>-->
+    <p class="page-desc">사번은 대문자로 자동 변환됩니다. 입력 후 중복확인을 완료해야 직원 등록 버튼이 활성화됩니다.</p>
+
+    <!-- 직원 등록 입력 폼을 감싸는 카드 영역 -->
+    <section class="register-card">
+        <!-- 직원 등록 성공/실패 메시지를 표시하는 영역 -->
+        <div id="message-area" class="message-area"></div>
+
+        <!-- 신규 직원 기본 정보와 시스템 역할을 입력받는 폼 -->
+        <form id="employee-register-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="employeeNo" class="form-label">사번</label>
+                    <div class="input-with-button">
+                        <input id="employeeNo" class="form-input" type="text" placeholder="예: BE002" required>
+                        <button type="button" class="btn-check" onclick="checkEmployeeNoDuplicate()">중복확인</button>
+                    </div>
+                    <div id="employee-no-message" class="field-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="form-label">이름</label>
+                    <input id="name" class="form-input" type="text" placeholder="예: 홍길동" required>
+                </div>
+
+                <div class="form-group full">
+                    <label for="email" class="form-label">이메일</label>
+                    <div class="input-with-button">
+                    <input id="email" class="form-input" type="email" placeholder="예: office@company.com" required>
+                        <button type="button" class="btn-check" onclick="checkEmailDuplicate()">중복확인</button>
+                    </div>
+                    <div id="email-message" class="field-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="department" class="form-label">부서</label>
+                    <select id="department" class="form-select" required>
+                        <option value="">부서 선택</option>
+                        <option value="FRONTEND">프론트엔드팀</option>
+                        <option value="BACKEND">백엔드팀</option>
+                        <option value="MANAGEMENT_SUPPORT">경영지원팀</option>
+                        <option value="MARKETING">마케팅팀</option>
+                        <option value="DB_MANAGEMENT">DB관리팀</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="position" class="form-label">직급</label>
+                    <select id="position" class="form-select" required>
+                        <option value="">직급 선택</option>
+                        <option value="STAFF">사원</option>
+                        <option value="ASSISTANT_MANAGER">대리</option>
+                        <option value="MANAGER">과장</option>
+                        <option value="GENERAL_MANAGER">부장</option>
+                        <option value="DEPUTY_GENERAL_MANAGER">차장</option>
+                        <option value="CEO">사장</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="role" class="form-label">시스템 역할</label>
+                    <select id="role" class="form-select">
+                        <option value="USER">USER - 일반 직원</option>
+                        <option value="ADMIN">ADMIN - 관리자</option>
+                        <option value="SUPER">SUPER - 최고 관리자</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="joinedOn" class="form-label">입사일</label>
+                    <input id="joinedOn" class="form-input" type="date">
+                </div>
+            </div>
+
+            <!-- 초기 비밀번호와 최초 로그인 정책 안내 영역 -->
+            <div class="hint-box">
+                등록된 직원은 사번으로 로그인합니다. 초기 비밀번호는 1111이며, 최초 로그인 후 비밀번호 변경이 필요합니다.
+            </div>
+
+            <div class="button-row">
+                <button type="button" class="btn-secondary" onclick="location.href='/dashboard'">취소</button>
+                <button type="submit" class="btn-primary" id="submit-button" disabled>직원 등록</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/employee/register.js}"></script>
+</th:block>
+</html>

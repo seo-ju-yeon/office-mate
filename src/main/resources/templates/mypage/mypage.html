@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<th:block layout:fragment="head-extra">
+    <title>OfficeMate - 내 정보</title>
+    <link rel="stylesheet" th:href="@{/css/mypage/mypage.css}">
+</th:block>
+
+<div layout:fragment="content" class="mypage-container">
+    <!-- 마이페이지 화면 제목 -->
+    <h1 class="page-title">내 정보</h1>
+
+    <div class="mypage-grid">
+        <!-- 현재 로그인 사용자의 기본 프로필 정보를 표시하는 영역 -->
+        <section class="profile-card">
+            <h3>프로필 정보</h3>
+            <div id="profile-message" class="message-area"></div>
+
+            <div class="info-row">
+                <label>사번</label>
+                <div class="info-value" id="employee-no">-</div>
+            </div>
+            <div class="info-row">
+                <label>이름</label>
+                <div class="info-value" id="employee-name">-</div>
+            </div>
+            <div class="info-row">
+                <label>부서</label>
+                <div class="info-value" id="employee-department">-</div>
+            </div>
+            <div class="info-row">
+                <label>직급</label>
+                <div class="info-value" id="employee-position">-</div>
+            </div>
+            <div class="info-row">
+                <label>권한</label>
+                <div class="info-value" id="employee-role">-</div>
+            </div>
+
+            <button type="button" class="btn-secondary" onclick="location.href='/dashboard'">
+                대시보드로 돌아가기
+            </button>
+        </section>
+
+        <!-- 현재 비밀번호를 확인한 뒤 새 비밀번호로 변경하는 영역 -->
+        <section class="profile-card">
+            <h3>비밀번호 변경</h3>
+            <div id="password-message" class="message-area"></div>
+
+            <!-- 비밀번호 변경 후 자동 로그아웃 안내 문구 -->
+            <div class="logout-notice">
+                <i data-lucide="info" class="logout-notice-icon"></i>
+                <p>
+                    보안을 위해 <strong>비밀번호 변경 후 자동으로 로그아웃</strong>되며, <br>
+                    새로운 비밀번호로 다시 로그인해야 합니다.
+                </p>
+            </div>
+
+            <form id="password-form">
+                <div class="info-row">
+                    <label for="current-password">현재 비밀번호</label>
+                    <input id="current-password" class="form-input" type="password" required>
+                </div>
+                <div class="info-row">
+                    <label for="new-password">새 비밀번호</label>
+                    <input id="new-password" class="form-input" type="password" required>
+                </div>
+                <div class="info-row">
+                    <label for="confirm-password">새 비밀번호 확인</label>
+                    <input id="confirm-password" class="form-input" type="password" required>
+                </div>
+                <button type="submit" class="btn-primary">
+                    비밀번호 변경
+                </button>
+            </form>
+        </section>
+
+        <!-- 휴직/퇴사 신청과 본인 신청 이력을 관리하는 영역 -->
+        <section class="profile-card status-request-card">
+            <h3>재직 상태 변경 신청</h3>
+            <div id="status-request-message" class="message-area"></div>
+
+            <div class="status-request-layout">
+                <form id="status-request-form">
+                    <div class="info-row">
+                        <label for="request-type">신청 유형</label>
+                        <select id="request-type" class="form-input" required>
+                            <option value="LEAVE">휴직 신청</option>
+                            <option value="RESIGN">퇴사 신청</option>
+                        </select>
+                    </div>
+                    <div class="info-row">
+                        <label for="request-reason">신청 사유</label>
+                        <textarea id="request-reason" class="form-textarea"
+                                  maxlength="2000"
+                                  placeholder="SUPER 승인자가 확인할 수 있도록 사유를 작성해주세요."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        신청 제출
+                    </button>
+                </form>
+
+                <div class="request-table-wrapper">
+                    <table class="request-table">
+                        <thead>
+                        <tr>
+                            <th>신청일</th>
+                            <th>유형</th>
+                            <th>상태</th>
+                            <th>처리자</th>
+                            <th>코멘트</th>
+                        </tr>
+                        </thead>
+                        <tbody id="status-request-history">
+                        <tr>
+                            <td colspan="5" class="empty-text">신청 이력을 불러오는 중입니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/mypage/mypage.js}"></script>
+</th:block>
+</html>

@@ -1,0 +1,240 @@
+/* 마이페이지 전체 콘텐츠의 최대 폭을 제한 */
+.mypage-container {
+    max-width: 980px;
+}
+
+.page-title {
+    margin: 0 0 24px;
+    font-size: 24px;
+    color: #172b4d;
+}
+
+/* 프로필과 비밀번호 변경 카드를 2열로 배치 */
+.mypage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* 마이페이지 안의 주요 기능을 담는 카드 영역 */
+.profile-card {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.profile-card h3 {
+    margin: 0 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ebecf0;
+    font-size: 16px;
+    color: #172b4d;
+}
+
+.info-row {
+    margin-bottom: 14px;
+}
+
+.info-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #6b778c;
+    font-weight: 700;
+}
+
+/* 읽기 전용 정보와 입력 필드의 기본 모양을 통일 */
+.info-value,
+.form-input {
+    width: 100%;
+    min-height: 38px;
+    box-sizing: border-box;
+    padding: 9px 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    background: #fafbfc;
+    color: #172b4d;
+    font-size: 14px;
+}
+
+.form-input {
+    background: #ffffff;
+}
+
+.form-input:disabled {
+    color: #6b778c;
+    background: #f4f5f7;
+}
+
+.btn-primary {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 4px;
+    background: #0052cc;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 14px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #172b4d;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* 성공/오류 메시지를 표시하는 공통 영역 */
+.message-area {
+    display: none;
+    margin-bottom: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.message-area.error {
+    display: block;
+    color: #bf2600;
+    background: #ffebe6;
+}
+
+.message-area.success {
+    display: block;
+    color: #006644;
+    background: #e3fcef;
+}
+
+/* 비밀번호 변경 후 자동 로그아웃 안내 박스 */
+.logout-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #ebf2ff;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.logout-notice-icon {
+    width: 16px;
+    height: 16px;
+    color: #0052cc;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.logout-notice p {
+    margin: 0;
+    font-size: 13px;
+    color: #172b4d;
+    line-height: 1.5;
+}
+
+.status-request-card {
+    grid-column: 1 / -1;
+}
+
+/* 상태 변경 신청 폼과 이력 테이블을 나란히 배치 */
+.status-request-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 360px) 1fr;
+    gap: 20px;
+}
+
+.form-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #172b4d;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.request-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #ebecf0;
+    border-radius: 4px;
+}
+
+.request-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 620px;
+    font-size: 13px;
+}
+
+.request-table th,
+.request-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #ebecf0;
+    text-align: left;
+    vertical-align: top;
+}
+
+.request-table th {
+    background: #f4f5f7;
+    color: #42526e;
+    font-weight: 700;
+}
+
+.request-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* 신청 상태를 색상으로 구분하는 배지 */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge.pending {
+    color: #974f0c;
+    background: #fff4d6;
+}
+
+.badge.approved {
+    color: #006644;
+    background: #e3fcef;
+}
+
+.badge.rejected {
+    color: #bf2600;
+    background: #ffebe6;
+}
+
+.empty-text {
+    padding: 28px 12px;
+    color: #6b778c;
+    text-align: center;
+}
+
+/* 작은 화면에서는 카드와 신청 이력 영역을 한 줄씩 쌓음 */
+@media (max-width: 900px) {
+    .mypage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .status-request-layout {
+        grid-template-columns: 1fr;
+    }
+}

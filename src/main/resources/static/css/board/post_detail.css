@@ -1,0 +1,123 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.wrap { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; max-width: 1200px; margin: 0 auto; }
+
+/* 게시글 카드 */
+.card-topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid #e0e0e0; background: #fff; }
+.card-topbar-title { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+.btn-write { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: #1976D2; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn-write:hover { background: #1565c0; }
+
+/* 게시글 헤더 */
+.article-header { padding: 20px 24px 14px; border-bottom: 1px solid #f0f0f0; }
+.article-tags { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 3px; }
+.tag-notice { background: #ffebee; color: #c62828; border: 1px solid #f5c6c6; }
+.article-title { font-size: 18px; font-weight: 700; color: #1a1a1a; line-height: 1.45; margin-bottom: 12px; letter-spacing: -0.3px; }
+.article-info { display: flex; align-items: center; gap: 16px; font-size: 12px; color: #666; flex-wrap: wrap; }
+.info-item { display: flex; align-items: center; gap: 4px; }
+.ic { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; flex-shrink: 0; }
+.edited-badge { font-size: 11px; color: #999; margin-left: 4px; }
+
+/* 본문 */
+.article-body { padding: 24px; border-bottom: 1px solid #f0f0f0; font-size: 14px; line-height: 1.85; color: #1a1a1a; min-height: 200px; }
+.article-body p { margin-bottom: 10px; }
+.article-body p:last-child { margin-bottom: 0; }
+
+/* 첨부파일 */
+.article-attachments { padding: 14px 24px; border-bottom: 1px solid #f0f0f0; background: #fafbfc; display: flex; flex-direction: column; gap: 8px; }
+.attachment-label { font-size: 12px; font-weight: 600; color: #666; }
+.attachment-list { display: flex; flex-direction: column; gap: 5px; }
+.attachment-item { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.attachment-item a { color: #1976D2; text-decoration: none; }
+.attachment-item a:hover { text-decoration: underline; }
+.attachment-size { font-size: 11px; color: #aaa; }
+
+/* 이전/다음글 */
+.article-nav { border-bottom: 1px solid #f0f0f0; }
+.nav-row { display: flex; align-items: center; padding: 9px 24px; gap: 12px; border-top: 1px solid #f0f0f0; font-size: 13px; }
+.nav-row:hover { background: #fafbfc; }
+.nav-label { font-size: 11px; color: #aaa; min-width: 36px; white-space: nowrap; }
+.nav-empty { font-size: 13px; color: #bbb; }
+
+/* 하단 버튼 */
+.article-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 14px 24px; border-top: 1px solid #f0f0f0; }
+.btn-secondary { padding: 7px 16px; background: #fff; color: #555; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn-secondary:hover { background: #f5f5f5; }
+.btn-danger { padding: 7px 16px; background: #e53e3e; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-danger:hover { background: #c53030; }
+
+/* 댓글 카드 */
+.comment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; margin-top: 12px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+.comment-header { padding: 13px 24px 11px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 6px; }
+.comment-header-title { font-size: 14px; font-weight: 700; }
+.comment-cnt { font-size: 13px; color: #1976D2; font-weight: 600; }
+.comment-empty { padding: 28px 24px; text-align: center; color: #aaa; font-size: 13px; }
+/* 댓글 영역 전체 컨테이너: 본문(.post-content)과 여백을 똑같이 맞춤 */
+.comment-section {
+    padding: 0 28px 40px 28px; /* 상0, 우28, 하40, 좌28 */
+    background: #fff;
+    width: 100%;
+}
+
+/* 댓글 입력창: 너비를 100%로 채우고 둥근 테두리 적용 */
+.comment-form textarea {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    resize: none;
+    min-height: 90px;
+    font-size: 14px;
+    background: #f9f9f9;
+    transition: border-color 0.2s;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #1976D2;
+    background: #fff;
+}
+
+/* 2. 댓글 작성 폼 (가로 너비 100% 보장) */
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+    width: 100%; /* 부모 너비에 맞춤 */
+}
+
+/* 3. 댓글 텍스트 영역 */
+.comment-form textarea {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: none;
+    font-size: 14px;
+    min-height: 100px;
+}
+/* Quill 에디터로 작성된 본문 스타일 */
+.article-body strong { font-weight: 700; }
+.article-body em { font-style: italic; }
+.article-body u { text-decoration: underline; }
+.article-body s { text-decoration: line-through; }
+
+.article-body ol, .article-body ul { padding-left: 24px; margin: 6px 0; }
+.article-body ol { list-style: decimal; }
+.article-body ul { list-style: disc; }
+
+.article-body a { color: #1976D2; text-decoration: underline; }
+.article-body a:hover { color: #1565c0; }
+
+.article-body .ql-align-center  { text-align: center; }
+.article-body .ql-align-right   { text-align: right; }
+.article-body .ql-align-justify { text-align: justify; }
+
+.article-body .ql-size-small { font-size: 0.75em; }
+.article-body .ql-size-large { font-size: 1.5em; }
+.article-body .ql-size-huge  { font-size: 2em; }
+
+.article-body .ql-font-serif     { font-family: Georgia, 'Times New Roman', serif; }
+.article-body .ql-font-monospace { font-family: 'Courier New', Courier, monospace; }
