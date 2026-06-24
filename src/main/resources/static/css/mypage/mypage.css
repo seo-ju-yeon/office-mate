@@ -1,4 +1,4 @@
-/* 마이페이지 전체 콘텐츠의 최대 폭을 제한 */
+/* 마이페이지 기본 레이아웃 영역 */
 .mypage-container {
     max-width: 980px;
 }
@@ -9,14 +9,14 @@
     color: #172b4d;
 }
 
-/* 프로필과 비밀번호 변경 카드를 2열로 배치 */
+/* 프로필과 비밀번호 변경 카드 그리드 영역 */
 .mypage-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
 }
 
-/* 마이페이지 안의 주요 기능을 담는 카드 영역 */
+/* 마이페이지 주요 기능 카드 영역 */
 .profile-card {
     background: #ffffff;
     padding: 24px;
@@ -44,7 +44,7 @@
     font-weight: 700;
 }
 
-/* 읽기 전용 정보와 입력 필드의 기본 모양을 통일 */
+/* 읽기 전용 정보와 입력 필드 공통 스타일 */
 .info-value,
 .form-input {
     width: 100%;
@@ -91,7 +91,7 @@
     cursor: pointer;
 }
 
-/* 성공/오류 메시지를 표시하는 공통 영역 */
+/* 성공/오류 메시지 공통 영역 */
 .message-area {
     display: none;
     margin-bottom: 14px;
@@ -112,7 +112,7 @@
     background: #e3fcef;
 }
 
-/* 비밀번호 변경 후 자동 로그아웃 안내 박스 */
+/* 비밀번호 변경 후 자동 로그아웃 안내 영역 */
 .logout-notice {
     display: flex;
     align-items: flex-start;
@@ -142,7 +142,7 @@
     grid-column: 1 / -1;
 }
 
-/* 상태 변경 신청 폼과 이력 테이블을 나란히 배치 */
+/* 상태 변경 신청 폼과 이력 테이블 영역 */
 .status-request-layout {
     display: grid;
     grid-template-columns: minmax(260px, 360px) 1fr;
@@ -195,7 +195,7 @@
     border-bottom: none;
 }
 
-/* 신청 상태를 색상으로 구분하는 배지 */
+/* 신청 상태 배지 표시 */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -228,7 +228,7 @@
     text-align: center;
 }
 
-/* 작은 화면에서는 카드와 신청 이력 영역을 한 줄씩 쌓음 */
+/* 모바일 화면 대응 레이아웃 처리 */
 @media (max-width: 900px) {
     .mypage-grid {
         grid-template-columns: 1fr;

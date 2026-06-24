@@ -1,63 +1,247 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-.wrap { display: flex; min-height: 700px; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background: #fff; max-width: 1200px; margin: 0 auto; }
+.wrap {
+    display: flex;
+    min-height: 700px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-/* [수정] justify-content: space-between 추가 — 테이블과 하단 검색/페이징 영역을 위아래로 분리 */
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; justify-content: space-between; }
-.hd { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; border-bottom: 1px solid #e0e0e0; background: #fff; }
-.hd-title { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+/* 테이블과 하단 검색/페이징 영역 분리 처리 */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    justify-content: space-between;
+}
 
-/* [수정] flex: 1 추가 — 테이블이 남은 공간을 채우도록 설정 */
-table { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1; }
-thead th { padding: 11px 16px; font-size: 13px; font-weight: 600; color: #888; border-bottom: 1px solid #e0e0e0; background: #fafafa; text-align: left; }
-tbody tr { border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background .1s; }
-tbody tr:hover { background: #f5f9ff; }
-tbody td { padding: 13px 16px; vertical-align: middle; }
+.hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+}
 
-.lbl { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 5px; font-weight: 600;
+.hd-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+/* 테이블이 남은 공간을 채우도록 처리 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    flex: 1;
+}
+
+thead th {
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fafafa;
+    text-align: left;
+}
+
+tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background .1s;
+}
+
+tbody tr:hover {
+    background: #f5f9ff;
+}
+
+tbody td {
+    padding: 13px 16px;
+    vertical-align: middle;
+}
+
+.lbl {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-weight: 600;
     white-space: nowrap;
     min-width: 70px;
-    text-align: center;}
-.lp { background: #ffebee; color: #c62828; }
-.lf { background: #f3f3f3; color: #555; }
+    text-align: center;
+}
 
-.ti { display: flex; align-items: center; gap: 8px; }
-.tt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1a1a1a; font-size: 15px; }
-.tt:hover { color: #1976D2; }
-.tc { font-size: 13px; color: #1976D2; flex-shrink: 0; font-weight: 600; }
+.lp {
+    background: #ffebee;
+    color: #c62828;
+}
 
-.ac { color: #666; font-size: 14px; }
-.mu { color: #999; font-size: 13px; }
-.nr { text-align: right; color: #999; font-size: 13px; }
-.empty { text-align: center; padding: 50px; color: #aaa; font-size: 15px; }
+.lf {
+    background: #f3f3f3;
+    color: #555;
+}
 
-.bot { border-top: 1px solid #e0e0e0; background: #fafafa; }
-.pgr { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 14px; border-bottom: 1px solid #efefef; }
-.pg { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 14px; cursor: pointer; color: #666; background: #fff; text-decoration: none; }
-.pg:hover { border-color: #1976D2; color: #1976D2; }
-.pg.on { background: #1976D2; color: #fff; border-color: #1976D2; font-weight: 600; }
+.ti {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-.sr { display: flex; align-items: center; gap: 10px; padding: 14px 20px; }
-.sr select { font-size: 14px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #555; outline: none; }
-.sr input { flex: 1; font-size: 14px; padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
-.sr input:focus { border-color: #1976D2; }
-.sr button { padding: 8px 20px; background: #1976D2; color: #fff; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600; }
-.sr button:hover { background: #1565c0; }
+.tt {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #1a1a1a;
+    font-size: 15px;
+}
 
-/* 기존 공지 배지 강조 */
+.tt:hover {
+    color: #1976D2;
+}
+
+.tc {
+    font-size: 13px;
+    color: #1976D2;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.ac {
+    color: #666;
+    font-size: 14px;
+}
+
+.mu {
+    color: #999;
+    font-size: 13px;
+}
+
+.nr {
+    text-align: right;
+    color: #999;
+    font-size: 13px;
+}
+
+.empty {
+    text-align: center;
+    padding: 50px;
+    color: #aaa;
+    font-size: 15px;
+}
+
+.bot {
+    border-top: 1px solid #e0e0e0;
+    background: #fafafa;
+}
+
+.pgr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px;
+    border-bottom: 1px solid #efefef;
+}
+
+.pg {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #666;
+    background: #fff;
+    text-decoration: none;
+}
+
+.pg:hover {
+    border-color: #1976D2;
+    color: #1976D2;
+}
+
+.pg.on {
+    background: #1976D2;
+    color: #fff;
+    border-color: #1976D2;
+    font-weight: 600;
+}
+
+.sr {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+}
+
+.sr select {
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    color: #555;
+    outline: none;
+}
+
+.sr input {
+    flex: 1;
+    font-size: 14px;
+    padding: 8px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+}
+
+.sr input:focus {
+    border-color: #1976D2;
+}
+
+.sr button {
+    padding: 8px 20px;
+    background: #1976D2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.sr button:hover {
+    background: #1565c0;
+}
+
+/* 공지 게시글 배지 강조 표시 */
 .lbl.lp {
     background: #fff1f2;
     color: #be123c;
     border: 1px solid #fecdd3;
 }
-/* [수정] 자유게시판 배지 스타일 추가 — board_id != 1인 일반 게시글에 적용 */
+
+/* 자유게시판 일반 게시글 배지 표시 */
 .lbl.l-free {
     background: #f0f6ff;
     color: #1565c0;
     border: 1px solid #bfdbfe;
 }
 
-/* 게시판 열(Column) 너비가 너무 좁다면 살짝 늘려주세요 */
+/* 게시글 제목 가독성 보정 */
 .tt {
-    font-weight: 500; /* 일반 게시글 제목도 가독성 좋게 */
+    font-weight: 500; /* 일반 게시글 제목 가독성 처리 */
 }

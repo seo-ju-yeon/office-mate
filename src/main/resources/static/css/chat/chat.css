@@ -1,4 +1,4 @@
-/* 기본 스타일 */
+/* 채팅 화면 기본 레이아웃 */
 body {
     font-family: 'Pretendard', sans-serif;
     margin: 0;
@@ -18,7 +18,7 @@ body {
 }
 
 .sidebar-header {
-    padding: 0; /* 패딩 제거하여 탭이 꽉 차게 */
+    padding: 0; /* 탭 너비를 꽉 채우기 위한 패딩 제거 처리 */
     border-bottom: 1px solid #ddd;
     background-color: #f8f9fa;
     display: flex;
@@ -343,7 +343,7 @@ body {
     word-break: break-all;
 }
 
-/* 내 메시지 정렬 (숫자-시간-내용) */
+/* 내 메시지 정렬 처리 */
 .sent {
     align-self: flex-end;
 }
@@ -359,7 +359,7 @@ body {
     border-bottom-right-radius: 2px;
 }
 
-/* 받은 메시지 정렬 (내용-시간-숫자) */
+/* 받은 메시지 정렬 처리 */
 .received {
     align-self: flex-start;
 }

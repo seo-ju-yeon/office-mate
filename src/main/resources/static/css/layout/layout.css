@@ -6,7 +6,7 @@
     --content-bg: #f4f5f7;
 }
 
-/* 전체 레이아웃의 기본 여백, 글꼴, 화면 높이를 설정 */
+/* 전체 레이아웃 기본 설정 */
 body {
     margin: 0;
     padding: 0;
@@ -73,10 +73,10 @@ body {
     background: #f4f5f7;
 }
 
-/* 사이드바와 본문을 담는 하단 전체 영역 */
+/* 사이드바와 본문을 담는 메인 영역 */
 .main-wrapper {
     display: flex;
-    /* 상단 헤더가 fixed라 본문 영역 높이를 직접 계산 */
+    /* 고정 헤더 높이를 제외한 본문 높이 처리 */
     flex: none;
     height: calc(100vh - var(--header-height));
     min-height: 0;
@@ -137,13 +137,13 @@ body {
     color: #fff;
 }
 
-/* 실제 페이지 콘텐츠가 표시되는 본문 영역 */
+/* 실제 페이지 콘텐츠 본문 영역 */
 .main-content {
     flex: 1;
     margin-left: var(--sidebar-width);
     background: var(--content-bg);
     padding: 32px;
-    /* body는 고정하고 main-content만 세로 스크롤되도록 설정 */
+    /* 본문 영역만 세로 스크롤 처리 */
     height: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -168,7 +168,7 @@ body {
 
 .nav-sub-menu {
     display: none;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     border-left: 2px solid var(--primary-color);
     margin: 0 12px 4px 24px;
     border-radius: 0 4px 4px 0;
@@ -189,7 +189,7 @@ body {
 
 .nav-sub-item:hover {
     color: #fff;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-sub-item.active {
@@ -197,7 +197,7 @@ body {
     font-weight: 600;
 }
 
-/* 게시판 아코디언 화살표 위치와 회전 효과 */
+/* 게시판 아코디언 화살표 회전 처리 */
 .accordion-arrow {
     margin-left: auto;
     transition: transform 0.2s;
@@ -207,12 +207,12 @@ body {
     transform: rotate(180deg);
 }
 
-/* 현재 로그인 사용자의 권한에 맞지 않는 메뉴를 숨기는 공통 상태 클래스 */
+/* 권한 불일치 메뉴 숨김 상태 처리 */
 .role-menu-hidden {
     display: none !important;
 }
 
-/* 권한에 따라 프로젝트 메뉴 노출을 제어하는 상태 클래스 */
+/* 프로젝트 메뉴 노출 상태 처리 */
 .project-menu-hidden {
     display: none;
 }
@@ -235,61 +235,7 @@ body {
     border-radius: 4px;
 }
 
-/* 채팅 알림 토스트를 우측 하단에 쌓아 보여주는 컨테이너 */
-#toastContainer {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 99999;
-
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.chat-toast {
-    width: 300px;
-
-    background: white;
-    border-left: 5px solid #0052CC;
-
-    border-radius: 12px;
-    padding: 14px 16px;
-
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-
-    animation: slideIn 0.25s ease;
-    cursor: pointer;
-}
-
-.chat-toast:hover {
-    transform: translateY(-2px);
-}
-
-.toast-title {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #111;
-}
-
-.toast-content {
-    font-size: 13px;
-    color: #555;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(120%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* 채팅 알림 css 추가!!!! - 재경*/
+/* 채팅 알림 토스트 영역 */
 #toastContainer {
     position: fixed;
     bottom: 20px;
@@ -332,6 +278,62 @@ body {
     color: #555;
 }
 
+/* 채팅 토스트가 오른쪽에서 나타나는 애니메이션 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(120%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 채팅 알림 토스트 영역 */
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-toast {
+    width: 300px;
+
+    background: white;
+    border-left: 5px solid #0052CC;
+
+    border-radius: 12px;
+    padding: 14px 16px;
+
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+
+    animation: slideIn 0.25s ease;
+    cursor: pointer;
+}
+
+.chat-toast:hover {
+    transform: translateY(-2px);
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #111;
+}
+
+.toast-content {
+    font-size: 13px;
+    color: #555;
+}
+
+/* 채팅 토스트가 오른쪽에서 나타나는 애니메이션 */
 @keyframes slideIn {
     from {
         opacity: 0;

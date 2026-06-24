@@ -1,28 +1,95 @@
-/* 캘린더 및 레이아웃 기본 스타일링 */
-body, .main-wrapper, .main-content { height: auto !important; overflow: visible !important; }
-#calendar-container, #event-list-container, .content-header { max-width: 1000px; margin-left: auto !important; margin-right: auto !important; }
+/* 캘린더 화면 기본 레이아웃 처리 */
+body, .main-wrapper, .main-content {
+    height: auto !important;
+    overflow: visible !important;
+}
 
-/* 카드형 컨테이너 디자인 */
-#calendar-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+#calendar-container, #event-list-container, .content-header {
+    max-width: 1000px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
 
-/* FullCalendar 내부 요소 스타일 수정 (폰트 및 색상) */
-.fc { font-size: 0.9em; }
-.fc-scroller { overflow-y: auto !important; }
-.fc .fc-daygrid-day-number, .fc .fc-col-header-cell-cushion { text-decoration: none !important; color: #000; }
-.fc-day-sat .fc-daygrid-day-number { color: blue !important; }
-.fc-day-sun .fc-daygrid-day-number { color: red !important; }
+/* 캘린더 카드 컨테이너 영역 */
+#calendar-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+/* FullCalendar 내부 폰트와 날짜 색상 보정 */
+.fc {
+    font-size: 0.9em;
+}
+
+.fc-scroller {
+    overflow-y: auto !important;
+}
+
+.fc .fc-daygrid-day-number, .fc .fc-col-header-cell-cushion {
+    text-decoration: none !important;
+    color: #000;
+}
+
+.fc-day-sat .fc-daygrid-day-number {
+    color: blue !important;
+}
+
+.fc-day-sun .fc-daygrid-day-number {
+    color: red !important;
+}
 
 /* 하단 일정 리스트 영역 */
-#event-list-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 80px; }
-.event-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f1f3f5; }
-.event-color-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 15px; }
-.event-info { flex-grow: 1; }
+#event-list-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 80px;
+}
 
-/* 프로젝트 필터 영역 스타일 */
-#project-filter-container { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; max-width: 1000px; margin-left: auto; margin-right: auto; }
-.project-filter-title { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+.event-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #f1f3f5;
+}
 
-/* 컬러 피커 동그라미 스타일 */
+.event-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.event-info {
+    flex-grow: 1;
+}
+
+/* 프로젝트 필터 영역 */
+#project-filter-container {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.project-filter-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 컬러 피커 원형 버튼 표시 */
 .color-dot-btn {
     width: 32px;
     height: 32px;
@@ -33,7 +100,11 @@ body, .main-wrapper, .main-content { height: auto !important; overflow: visible 
     padding: 0;
     position: relative;
 }
-.color-dot-btn:hover { transform: scale(1.15); }
+
+.color-dot-btn:hover {
+    transform: scale(1.15);
+}
+
 .color-dot-btn.active {
     border-color: #333 !important;
     box-shadow: inset 0 0 0 3px #fff;

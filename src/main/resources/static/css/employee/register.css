@@ -1,4 +1,4 @@
-/* 직원 등록 화면의 전체 콘텐츠 폭을 제한 */
+/* 직원 등록 화면 기본 레이아웃 영역 */
 .employee-register-container {
     max-width: 860px;
 }
@@ -15,7 +15,7 @@
     font-size: 14px;
 }
 
-/* 직원 등록 입력 폼을 감싸는 카드 영역 */
+/* 직원 등록 입력 폼 카드 영역 */
 .register-card {
     background: #ffffff;
     border-radius: 8px;
@@ -23,7 +23,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* 직원 등록 입력 항목을 2열 그리드로 배치 */
+/* 직원 등록 입력 항목 그리드 영역 */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -59,7 +59,7 @@
     font-size: 14px;
 }
 
-/* 사번 입력과 중복확인 버튼을 한 줄에 배치 */
+/* 사번 입력과 중복확인 버튼 영역 */
 .input-with-button {
     display: flex;
     gap: 8px;
@@ -80,7 +80,7 @@
     font-weight: 700;
 }
 
-/* 사번 중복확인 결과를 표시하는 필드 메시지 */
+/* 사번 중복확인 결과 메시지 표시 */
 .field-message {
     min-height: 16px;
     font-size: 12px;
@@ -94,7 +94,7 @@
     color: #006644;
 }
 
-/* 초기 비밀번호와 최초 로그인 안내를 보여주는 도움말 영역 */
+/* 초기 비밀번호와 최초 로그인 안내 영역 */
 .hint-box {
     margin-top: 18px;
     padding: 14px;
@@ -105,7 +105,7 @@
     line-height: 1.5;
 }
 
-/* 직원 등록 성공/실패 메시지를 표시하는 영역 */
+/* 직원 등록 성공/실패 메시지 영역 */
 .message-area {
     display: none;
     margin-bottom: 16px;
@@ -126,7 +126,7 @@
     background: #e3fcef;
 }
 
-/* 취소와 직원 등록 버튼을 오른쪽에 정렬 */
+/* 취소와 직원 등록 버튼 영역 */
 .button-row {
     display: flex;
     justify-content: flex-end;
@@ -160,7 +160,7 @@
     background: #97a0af;
 }
 
-/* 좁은 화면에서는 입력 폼을 1열로 표시 */
+/* 모바일 화면 대응 입력 폼 처리 */
 @media (max-width: 820px) {
     .form-grid {
         grid-template-columns: 1fr;

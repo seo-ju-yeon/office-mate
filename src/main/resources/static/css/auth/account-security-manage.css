@@ -1,4 +1,4 @@
-/* 계정 보안 관리 화면의 전체 콘텐츠 폭과 세로 배치를 담당 */
+/* 계정 보안 관리 화면 기본 레이아웃 영역 */
 .account-security-container {
     max-width: 1180px;
     margin: 0 auto;
@@ -14,7 +14,7 @@
     font-weight: 800;
 }
 
-/* 검색어, 잠긴 계정 필터, 조회 버튼을 한 줄에 배치하는 상단 도구 영역 */
+/* 검색어, 잠금 필터, 조회 버튼 배치 영역 */
 .toolbar {
     border: 1px solid #dfe1e6;
     border-radius: 8px;
@@ -35,7 +35,7 @@
     font-size: 14px;
 }
 
-/* 잠긴 계정만 조회할 때 사용하는 체크박스 라벨 */
+/* 잠긴 계정 필터 토글 처리 */
 .filter-toggle {
     height: 40px;
     display: inline-flex;
@@ -51,7 +51,7 @@
     height: 16px;
 }
 
-/* 조회/정상/잠금 해제 버튼의 공통 크기와 정렬을 맞춤 */
+/* 조회, 정상, 잠금 해제 버튼 공통 스타일 */
 .btn-primary,
 .btn-secondary,
 .btn-danger {
@@ -91,7 +91,7 @@
     color: #6b778c;
 }
 
-/* 조회 성공/실패 메시지를 표시하는 영역 */
+/* 조회 결과 메시지 표시 영역 */
 .message-area {
     min-height: 20px;
     color: #172b4d;
@@ -107,7 +107,7 @@
     color: #00875a;
 }
 
-/* 조회 계정, 잠긴 계정, 정상 계정 수를 보여주는 요약 카드 행 */
+/* 계정 상태 요약 카드 영역 */
 .summary-row {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -134,7 +134,7 @@
     font-weight: 900;
 }
 
-/* 계정 보안 목록 테이블을 감싸는 패널 */
+/* 계정 보안 목록 테이블 영역 */
 .table-panel {
     border: 1px solid #dfe1e6;
     border-radius: 8px;
@@ -179,7 +179,7 @@
     font-size: 12px;
 }
 
-/* 계정 잠금 여부를 한눈에 구분하기 위한 상태 배지 */
+/* 계정 잠금 여부 상태 배지 표시 */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -208,7 +208,7 @@
     font-weight: 700;
 }
 
-/* 계정 보안 목록의 페이지 이동 버튼과 페이지 정보를 배치하는 영역 */
+/* 페이지 이동 버튼과 현재 페이지 정보 영역 */
 .pagination-row {
     display: flex;
     align-items: center;
@@ -227,7 +227,7 @@
     text-align: center;
 }
 
-/* 작은 화면에서는 검색 도구와 요약 영역을 세로로 쌓아 가독성을 확보 */
+/* 모바일 화면 대응 레이아웃 처리 */
 @media (max-width: 760px) {
     .toolbar {
         grid-template-columns: 1fr;

@@ -1,9 +1,9 @@
-/* 상태 신청 관리 화면의 전체 콘텐츠 폭을 제한 */
+/* 상태 신청 관리 화면 기본 레이아웃 영역 */
 .status-manage-container {
     max-width: 1180px;
 }
 
-/* 화면 제목과 새로고침 버튼을 배치하는 헤더 영역 */
+/* 화면 제목과 새로고침 버튼 헤더 영역 */
 .page-header {
     display: flex;
     align-items: center;
@@ -24,7 +24,7 @@
     gap: 8px;
 }
 
-/* 아이콘만 들어가는 공통 버튼 */
+/* 아이콘 버튼 공통 스타일 */
 .icon-btn {
     display: inline-flex;
     align-items: center;
@@ -42,7 +42,7 @@
     background: #f4f5f7;
 }
 
-/* 승인 대기 신청 목록을 감싸는 패널 */
+/* 승인 대기 신청 목록 테이블 영역 */
 .request-panel {
     background: #ffffff;
     border-radius: 8px;
@@ -97,7 +97,7 @@
     white-space: pre-wrap;
 }
 
-/* 휴직/퇴사/복직 신청 유형을 구분하는 배지 */
+/* 휴직, 퇴사, 복직 신청 유형 배지 표시 */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -124,7 +124,7 @@
     background: #e3fcef;
 }
 
-/* 승인/반려 버튼 묶음 */
+/* 승인/반려 버튼 영역 */
 .action-group {
     display: flex;
     gap: 8px;
@@ -160,7 +160,7 @@
     text-align: center;
 }
 
-/* 처리 결과와 오류 메시지를 표시하는 영역 */
+/* 처리 결과와 오류 메시지 영역 */
 .message-area {
     display: none;
     margin-bottom: 14px;
@@ -181,7 +181,7 @@
     background: #e3fcef;
 }
 
-/* 승인/반려 코멘트를 입력하는 모달 배경 */
+/* 승인/반려 코멘트 입력 모달 영역 */
 .modal-backdrop {
     display: none;
     position: fixed;
@@ -251,7 +251,7 @@
     line-height: 1.5;
 }
 
-/* 모달 하단 취소/확인 버튼 */
+/* 모달 하단 취소/확인 버튼 영역 */
 .modal-btn {
     min-width: 76px;
     height: 36px;

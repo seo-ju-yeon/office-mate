@@ -1,9 +1,9 @@
-/* 감사 로그 관리 화면 전체의 기본 글자색을 지정 */
+/* 감사 로그 관리 화면 기본 영역 */
 .audit-log-container {
     color: #172b4d;
 }
 
-/* 페이지 제목과 CSV 내보내기 버튼을 양쪽 끝에 배치하는 헤더 영역 */
+/* 페이지 제목과 CSV 내보내기 버튼 헤더 영역 */
 .audit-page-header {
     display: flex;
     align-items: center;
@@ -18,7 +18,7 @@
     font-weight: 700;
 }
 
-/* 감사 로그 검색 조건을 카드 형태의 그리드로 배치 */
+/* 감사 로그 검색 조건 카드 영역 */
 .audit-filter-card {
     background: #ffffff;
     padding: 20px;
@@ -52,7 +52,7 @@
     font-size: 13px;
 }
 
-/* 조회, 페이지 이동, CSV 내보내기에서 공통으로 사용하는 버튼 */
+/* 조회, 페이지 이동, CSV 내보내기 버튼 공통 처리 */
 .audit-button {
     background: #0052cc;
     color: #ffffff;
@@ -69,7 +69,7 @@
     border: 1px solid #dfe1e6;
 }
 
-/* 감사 로그 목록 테이블과 페이지네이션을 감싸는 영역 */
+/* 감사 로그 목록 테이블 영역 */
 .audit-table-wrapper {
     background: #ffffff;
     border-radius: 8px;
@@ -102,7 +102,7 @@
     background: #f4f7fb;
 }
 
-/* 감사 액션 타입을 색상으로 구분하는 배지 */
+/* 감사 액션 타입 상태 배지 표시 */
 .audit-badge {
     padding: 2px 6px;
     border-radius: 3px;
@@ -167,7 +167,7 @@
     cursor: default;
 }
 
-/* 이전/다음 버튼과 현재 페이지 정보를 보여주는 영역 */
+/* 이전, 다음 버튼과 현재 페이지 정보 영역 */
 .audit-pagination {
     display: flex;
     align-items: center;
@@ -183,7 +183,7 @@
     color: #6b778c;
 }
 
-/* 감사 로그 상세 정보를 보여주는 모달 배경 */
+/* 감사 로그 상세 모달 영역 */
 .audit-modal {
     display: none;
     position: fixed;
@@ -264,7 +264,7 @@
     text-align: right;
 }
 
-/* 작은 화면에서는 헤더와 상세 모달 내용을 세로로 배치 */
+/* 모바일 화면 대응 레이아웃 처리 */
 @media (max-width: 800px) {
     .audit-page-header {
         align-items: flex-start;

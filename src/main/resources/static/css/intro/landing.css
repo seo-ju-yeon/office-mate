@@ -1,4 +1,4 @@
-/* 랜딩 페이지에서 공통으로 사용하는 색상 변수 */
+/* 랜딩 페이지 공통 색상 변수 */
 :root {
     --bg-black: #000000;
     --grid-color: rgba(255, 255, 255, 0.05);
@@ -6,7 +6,7 @@
     --text-dim: #86868b;
 }
 
-/* 랜딩 페이지 전체를 검은 배경의 풀스크린 화면으로 구성 */
+/* 랜딩 페이지 전체 화면 레이아웃 */
 body,
 html {
     margin: 0;
@@ -18,7 +18,7 @@ html {
     color: white;
 }
 
-/* 엔지니어링 느낌의 격자 배경 */
+/* 격자 배경 효과 영역 */
 .grid-background {
     position: absolute;
     top: 0;
@@ -31,7 +31,7 @@ html {
     z-index: 1;
 }
 
-/* 마우스 위치를 따라 움직이는 스포트라이트 효과 */
+/* 마우스 위치 기반 스포트라이트 효과 */
 .spotlight {
     position: absolute;
     top: 0;
@@ -43,7 +43,7 @@ html {
     pointer-events: none;
 }
 
-/* 랜딩 페이지의 핵심 문구와 진입 버튼을 왼쪽 중심에 배치 */
+/* 핵심 문구와 진입 버튼 영역 */
 .content-wrapper {
     position: relative;
     z-index: 10;
@@ -88,7 +88,7 @@ html {
     margin: 20px 0 40px 0;
 }
 
-/* 로그인/대시보드/비밀번호 변경으로 진입하는 링크 버튼 */
+/* 로그인, 대시보드, 비밀번호 변경 진입 버튼 */
 .nav-btn {
     display: flex;
     align-items: center;
@@ -118,7 +118,7 @@ html {
     width: 60px;
 }
 
-/* 하단 프로젝트 구성과 핵심 구현 기술을 보여주는 메트릭 영역 */
+/* 하단 프로젝트 구성 메트릭 영역 */
 .metrics {
     position: absolute;
     right: 10%;
@@ -131,7 +131,7 @@ html {
     font-family: 'JetBrains Mono', monospace;
 }
 
-/* 각 구현 영역을 포트폴리오 스펙 카드처럼 구분 */
+/* 구현 영역별 메트릭 항목 표시 */
 .metric-item {
     min-width: 0;
     padding: 14px 0 0;

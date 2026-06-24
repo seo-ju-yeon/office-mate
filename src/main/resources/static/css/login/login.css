@@ -9,7 +9,7 @@
     --border-color: #DFE1E6;
 }
 
-/* 로그인 화면 전체를 중앙 정렬하고 기본 배경과 글꼴을 설정 */
+/* 로그인 화면 중앙 정렬 레이아웃 */
 body {
     font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
     background-color: #FAFBFC;
@@ -21,7 +21,7 @@ body {
     height: 100vh;
 }
 
-/* 로그인 폼 전체를 감싸는 카드 영역 */
+/* 로그인 폼 카드 영역 */
 .login-container {
     background: #FFFFFF;
     width: 100%;
@@ -32,7 +32,7 @@ body {
     text-align: center;
 }
 
-/* 서비스 로고와 아이콘을 가운데 정렬 */
+/* 서비스 로고 영역 */
 .logo {
     display: flex;
     justify-content: center;
@@ -89,7 +89,7 @@ input {
     transition: all 0.2s ease-in-out;
 }
 
-/* 사번 입력칸은 대문자로만 보이도록 설정 */
+/* 사번 입력값 대문자 표시 처리 */
 #employeeId {
     text-transform: uppercase;
 }
@@ -100,7 +100,7 @@ input:focus {
     background-color: #FFFFFF;
 }
 
-/* 비밀번호 표시/숨김 버튼을 입력칸 우측에 배치 */
+/* 비밀번호 표시/숨김 버튼 영역 */
 .password-toggle {
     position: absolute;
     right: 12px;
@@ -122,7 +122,7 @@ input:focus {
     height: 18px;
 }
 
-/* 입력 필드 하단의 보조 안내 문구 영역 */
+/* 입력 필드 보조 안내 문구 영역 */
 .input-hint {
     display: flex;
     align-items: center;
@@ -164,7 +164,7 @@ button.btn-primary:hover {
     background-color: var(--jira-blue-hover);
 }
 
-/* 로그인 실패 메시지를 표시하는 오류 영역 */
+/* 로그인 실패 메시지 영역 */
 .error-area {
     margin-bottom: 20px;
     padding: 12px;
@@ -178,7 +178,7 @@ button.btn-primary:hover {
     text-align: left;
 }
 
-/* 복직 신청 완료 같은 성공 메시지를 표시하는 영역 */
+/* 복직 신청 완료 등 성공 메시지 영역 */
 .success-area {
     margin-bottom: 20px;
     padding: 12px;
@@ -192,7 +192,7 @@ button.btn-primary:hover {
     text-align: left;
 }
 
-/* 휴직 계정 로그인 시 노출되는 복직 신청 패널 */
+/* 휴직 계정 복직 신청 패널 영역 */
 .return-request-panel {
     display: none;
     margin-top: 18px;
@@ -266,7 +266,7 @@ hr {
     margin: 20px 0;
 }
 
-/* API 요청 처리 중 화면 전체를 덮는 로딩 오버레이 */
+/* API 요청 처리 중 로딩 오버레이 */
 #loading-overlay {
     position: fixed;
     top: 0;
@@ -280,7 +280,7 @@ hr {
     z-index: 9999;
 }
 
-/* 로딩 상태를 보여주는 회전 스피너 */
+/* 로딩 상태 회전 스피너 영역 */
 .spinner {
     width: 30px;
     height: 30px;
@@ -290,6 +290,7 @@ hr {
     animation: spin 0.8s linear infinite;
 }
 
+/* 로딩 스피너 회전 애니메이션 */
 @keyframes spin {
     to {
         transform: rotate(360deg);
