@@ -1,24 +1,23 @@
-// 아래 변수들은 HTML의 <script th:inline="javascript"> 블록에서 Thymeleaf가 서버 데이터를 주입함
+// Thymeleaf inline script에서 서버 데이터 주입
 // const postId   = /*[[${post.id}]]*/ 0;
 // const boardId  = /*[[${post.boardId}]]*/ 0;
 // const authorNo = /*[[${post.authorNo}]]*/ '';
 
-// localStorage에서 현재 로그인 사용자 정보 로드 (미로그인 시 빈 문자열로 초기화)
+// 현재 로그인 사용자 정보
 const currentEmployeeNo = localStorage.getItem('employeeNo') || '';
-const currentRole       = localStorage.getItem('role')       || '';
+const currentRole = localStorage.getItem('role') || '';
 const isAdmin = currentRole === 'ADMIN' || currentRole === 'SUPER';
 
-/* 버튼 노출 초기화 - 페이지 로드 즉시 실행되며, 로그인 사용자의 권한에 따라
-   수정·삭제·작성 버튼의 노출 여부와 링크를 동적으로 설정함 */
+/* 게시글 상세 버튼 노출 초기화 처리 */
 (function initButtons() {
     const isOwner = currentEmployeeNo !== '' && currentEmployeeNo === authorNo;
     const canEdit = isOwner || isAdmin;
 
     if (canEdit) {
         let editPath;
-        if (boardId === 1)       editPath = `/board/notice/${postId}/edit`;
-        else if (boardId === 2)  editPath = `/board/general/${postId}/edit`;
-        else                     editPath = `/board/project/notice/${postId}/edit`;
+        if (boardId === 1) editPath = `/board/notice/${postId}/edit`;
+        else if (boardId === 2) editPath = `/board/general/${postId}/edit`;
+        else editPath = `/board/project/notice/${postId}/edit`;
 
         const btnEdit = document.getElementById('btnEdit');
         btnEdit.href = editPath;
@@ -29,35 +28,43 @@ const isAdmin = currentRole === 'ADMIN' || currentRole === 'SUPER';
     const btnWrite = document.getElementById('btnWrite');
     if (btnWrite) {
         if (boardId === 1) {
-            // 공지사항: ADMIN·SUPER만 작성 가능
-            if (isAdmin) { btnWrite.href = '/board/notice/write'; btnWrite.style.display = ''; }
+            // 공지사항은 ADMIN/SUPER만 작성 가능
+            if (isAdmin) {
+                btnWrite.href = '/board/notice/write';
+                btnWrite.style.display = '';
+            }
         } else if (boardId === 2) {
-            // 자유게시판: 로그인한 사용자 누구나
-            if (currentEmployeeNo) { btnWrite.href = '/board/general/write'; btnWrite.style.display = ''; }
+            // 자유게시판은 로그인 사용자 작성 가능
+            if (currentEmployeeNo) {
+                btnWrite.href = '/board/general/write';
+                btnWrite.style.display = '';
+            }
         } else {
-            // 프로젝트 공지: ADMIN·SUPER만 작성 가능
-            if (isAdmin) { btnWrite.href = '/board/project/notice/write'; btnWrite.style.display = ''; }
+            // 프로젝트 공지는 ADMIN/SUPER만 작성 가능
+            if (isAdmin) {
+                btnWrite.href = '/board/project/notice/write';
+                btnWrite.style.display = '';
+            }
         }
     }
 })();
 
-/* DOMContentLoaded 시 댓글 목록 초기 로드 */
-document.addEventListener('DOMContentLoaded', function() {
+/* 댓글 목록 초기 조회 처리 */
+document.addEventListener('DOMContentLoaded', function () {
     loadComments();
 });
 
-/* 댓글 목록 조회 - API를 호출해 댓글 목록을 가져온 후 동적으로 렌더링함.
-   댓글 작성자 본인 또는 관리자인 경우에만 삭제 버튼을 노출함 */
+/* 댓글 목록 조회 및 렌더링 처리 */
 function loadComments() {
     const accessToken = localStorage.getItem('accessToken');
 
     fetch(`/api/board/${postId}/comments`, {
-        headers: { 'Authorization': 'Bearer ' + accessToken }
+        headers: {'Authorization': 'Bearer ' + accessToken}
     })
         .then(res => res.json())
         .then(data => {
             const listElem = document.getElementById("commentList");
-            // 기존 목록 초기화 후 새로 렌더링 (중복 방지)
+            // 기존 목록 초기화 후 재렌더링
             listElem.innerHTML = "";
 
             data.forEach(comment => {
@@ -81,8 +88,7 @@ function loadComments() {
         .catch(err => console.error("댓글 로드 실패:", err));
 }
 
-/* 댓글 작성 - 빈 내용 입력을 방지하고, API를 호출해 댓글을 저장한 후
-   입력창을 초기화하고 목록을 새로고침함 */
+/* 댓글 작성 요청 처리 */
 function saveComment() {
     const content = document.getElementById("commentContent").value;
     const accessToken = localStorage.getItem('accessToken');
@@ -99,7 +105,7 @@ function saveComment() {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + accessToken
         },
-        body: JSON.stringify({ content: content })
+        body: JSON.stringify({content: content})
     })
         .then(res => {
             if (res.ok) {
@@ -107,21 +113,20 @@ function saveComment() {
                 document.getElementById("commentContent").value = "";
                 loadComments();
             } else {
-                // 토큰 만료 또는 인증 실패 시 안내
+                // 토큰 만료 또는 인증 실패 안내
                 alert("댓글 등록에 실패했습니다. 세션을 확인해주세요.");
             }
         });
 }
 
-/* 댓글 삭제 - 사용자 확인 후 API를 호출해 소프트 딜리트 처리하고 목록을 새로고침함.
-   서버에서 본인·관리자 여부를 재검증하므로 클라이언트 권한 체크는 UI 노출용임 */
+/* 댓글 삭제 요청 처리 */
 function deleteComment(commentId) {
     if (!confirm("댓글을 삭제하시겠습니까?")) return;
     const accessToken = localStorage.getItem('accessToken');
 
     fetch(`/api/board/comments/${commentId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + accessToken }
+        headers: {'Authorization': 'Bearer ' + accessToken}
     })
         .then(res => {
             if (res.ok) loadComments(); // 삭제 성공 시 목록 새로고침
@@ -129,7 +134,7 @@ function deleteComment(commentId) {
         });
 }
 
-/* OffsetDateTime 문자열을 'yyyy.MM.dd HH:mm' 형식으로 변환 - null·undefined 입력 시 빈 문자열 반환 */
+/* 날짜/시간 표시 형식 변환 처리 */
 function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -140,24 +145,25 @@ function formatDate(dateStr) {
         String(date.getMinutes()).padStart(2, '0');
 }
 
-/* 게시글 삭제 - 사용자 확인 후 API를 호출해 소프트 딜리트 처리하고,
-   boardId에 따라 공지·자유 게시판 목록으로 이동함 */
+/* 게시글 삭제 요청 처리 */
 function deletePost(btn) {
     if (!confirm('게시글을 삭제하시겠습니까?')) return;
-    const postId  = btn.dataset.postId;
+    const postId = btn.dataset.postId;
     const boardId = parseInt(btn.dataset.boardId);
 
     let listUrl;
-    if (boardId === 1)      listUrl = '/board/notice/list';
+    if (boardId === 1) listUrl = '/board/notice/list';
     else if (boardId === 2) listUrl = '/board/general/list';
-    else                    listUrl = '/board/project/notice/list';
+    else listUrl = '/board/project/notice/list';
 
     const accessToken = localStorage.getItem('accessToken');
     fetch(`/api/board/${postId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + accessToken }
+        headers: {'Authorization': 'Bearer ' + accessToken}
     }).then(res => {
-        if (res.ok) { alert('삭제되었습니다.'); window.location.href = listUrl; }
-        else alert('삭제 권한이 없습니다.');
+        if (res.ok) {
+            alert('삭제되었습니다.');
+            window.location.href = listUrl;
+        } else alert('삭제 권한이 없습니다.');
     });
 }

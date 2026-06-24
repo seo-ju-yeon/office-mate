@@ -1,7 +1,7 @@
 // 스포트라이트 효과를 적용할 배경 요소
 const spotlight = document.getElementById('spotlight');
 
-/* 마우스 좌표를 CSS 변수로 전달해 배경 스포트라이트 위치를 움직이는 이벤트 메서드 */
+/* 배경 스포트라이트 위치 갱신 처리 */
 window.addEventListener('mousemove', function (event) {
     // 현재 마우스 X 좌표를 CSS 변수로 반영
     spotlight.style.setProperty('--x', event.clientX + 'px');
@@ -16,7 +16,7 @@ const entryLink = document.getElementById('entry-link');
 // 진입 링크 내부에 표시되는 텍스트 요소
 const entryText = document.querySelector('#entry-link span');
 
-/* 랜딩 페이지의 진입 버튼 문구와 이동 경로를 함께 변경하는 메서드 */
+/* 랜딩 진입 링크 문구와 이동 경로 변경 처리 */
 function setEntryLink(label, href) {
     // 버튼에 표시할 문구 변경
     entryText.innerText = label;
@@ -25,7 +25,7 @@ function setEntryLink(label, href) {
     entryLink.href = href;
 }
 
-/* 브라우저에 남아 있는 로그인 토큰과 사용자 정보를 제거하는 메서드 */
+/* 브라우저 로그인 정보 제거 처리 */
 function clearStoredAuth() {
     // 초기 진입 페이지에서는 이전 브라우저 세션 값을 모두 제거
     localStorage.clear();
@@ -34,30 +34,30 @@ function clearStoredAuth() {
     sessionStorage.clear();
 }
 
-/* accessToken이 이미 만료됐는지 확인하는 메서드 */
-// 보안 검증용이 아니라, 만료가 확실한 토큰으로 /api/auth/me를 호출하지 않기 위해 사전 체크
+/* accessToken 만료 여부 사전 확인 처리 */
+// 보안 검증이 아니라 만료가 확실한 토큰으로 /api/auth/me 호출을 피하기 위한 사전 체크
 function isJwtExpired(token) {
     try {
         const payloadBase64Url = token.split('.')[1];
 
-        // JWT payload는 base64url 형식이라 atob가 읽을 수 있는 base64 형식으로 보정
+        // JWT payload를 atob가 읽을 수 있는 base64 형식으로 보정
         const payloadBase64 = payloadBase64Url
             .replace(/-/g, '+')
             .replace(/_/g, '/');
 
         const payload = JSON.parse(atob(payloadBase64));
 
-        // exp는 초 단위, Date.now()는 밀리초 단위라 1000을 곱함
+        // exp는 초 단위이므로 밀리초 기준 비교를 위해 1000 곱셈
         return !payload.exp || payload.exp * 1000 <= Date.now();
     } catch (error) {
-        // 토큰 형식이 이상하면 만료된 토큰처럼 취급하고 정리
+        // 토큰 형식이 이상하면 만료 토큰으로 처리
         return true;
     }
 }
 
-/* 서버에 남은 refresh token도 폐기해 브라우저 세션 재발급을 막는 메서드 */
+/* 서버 refreshToken 폐기 요청 처리 */
 async function revokeServerSession(accessToken) {
-    // 토큰이 없으면 서버 로그아웃 요청 없이 브라우저 저장소만 정리
+    // 토큰이 없으면 서버 로그아웃 요청 생략
     if (!accessToken) {
         return;
     }
@@ -70,23 +70,23 @@ async function revokeServerSession(accessToken) {
             }
         });
     } catch (error) {
-        // 서버 로그아웃 실패 여부와 관계없이 브라우저 저장소는 정리한다.
+        // 서버 로그아웃 실패 여부와 관계없이 이후 브라우저 저장소 정리
     }
 }
 
-/* 현재 로그인 상태를 서버에 검증해 랜딩 진입 버튼의 목적지를 결정하는 메서드 */
+/* 랜딩 진입 버튼 목적지 결정 처리 */
 async function initializeEntryLink() {
-    // 단순 localStorage 존재 여부가 아니라 서버 검증에 사용할 accessToken 조회
+    // 서버 검증에 사용할 accessToken 조회
     const token = localStorage.getItem('accessToken');
 
-    // 토큰이 없으면 로그인 화면으로 진입하도록 설정
+    // 토큰이 없으면 로그인 화면 진입으로 설정
     if (!token) {
         clearStoredAuth();
         setEntryLink('GO TO LOGIN', '/login');
         return;
     }
 
-    // 토큰이 이미 만료됐으면 /api/auth/me를 호출하지 않고 바로 정리
+    // 토큰이 이미 만료됐으면 /api/auth/me 호출 없이 정리
     // 랜딩 페이지에서는 refreshToken으로 자동 재발급하지 않음
     if (isJwtExpired(token)) {
         clearStoredAuth();
@@ -95,14 +95,14 @@ async function initializeEntryLink() {
     }
 
     try {
-        // 현재 토큰이 실제 유효한지 서버의 /api/auth/me로 검증
+        // 현재 토큰이 실제 유효한지 /api/auth/me로 검증
         const response = await fetch('/api/auth/me', {
             headers: {
                 'Authorization': 'Bearer ' + token
             }
         });
 
-        // 토큰 검증 실패 시 저장된 인증 정보를 지우고 로그인 화면으로 설정
+        // 토큰 검증 실패 시 인증 정보 제거 후 로그인 화면 설정
         if (!response.ok) {
             clearStoredAuth();
             setEntryLink('GO TO LOGIN', '/login');
@@ -112,7 +112,7 @@ async function initializeEntryLink() {
         // 현재 사용자 상태 조회
         const data = await response.json();
 
-        // 임시 비밀번호 변경이 필요한 계정이면 세션을 정리하고 로그인 화면으로 설정
+        // 임시 비밀번호 변경 필요 계정은 세션 정리 후 로그인 화면 설정
         if (data.tempPasswordRequired) {
             await revokeServerSession(token);
             clearStoredAuth();
@@ -120,10 +120,10 @@ async function initializeEntryLink() {
             return;
         }
 
-        // 정상 로그인 상태면 대시보드로 진입하도록 설정
+        // 정상 로그인 상태면 대시보드 진입으로 설정
         setEntryLink('GO TO DASHBOARD', '/dashboard');
     } catch (error) {
-        // 서버 통신 실패(fetch('/api/auth/me') HTTP 요청 실패) 시 저장된 인증 정보를 지우고 로그인 화면으로 설정
+        // 서버 통신 실패 시 인증 정보 제거 후 로그인 화면 설정
         clearStoredAuth();
         setEntryLink('GO TO LOGIN', '/login');
     }

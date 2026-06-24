@@ -4,22 +4,21 @@ let auditCurrentPage = 0;
 // 서버가 내려준 전체 페이지 수
 let auditTotalPages = 0;
 
-// 현재 화면에 렌더링된 감사 로그 목록. 상세 모달에서 재사용
+// 현재 화면에 렌더링된 감사 로그 목록
 let auditCurrentLogs = [];
 
-/* 감사 로그 화면 최초 진입 시 첫 페이지 조회 이벤트를 등록하는 초기화 메서드 */
+/* 감사 로그 화면 초기화 처리 */
 document.addEventListener('DOMContentLoaded', function () {
-    // 화면 최초 진입 시 첫 페이지 감사 로그 조회
     loadAuditLogs(0);
 });
 
-/* 감사 로그 목록을 현재 필터 조건과 페이지 번호 기준으로 조회하는 메서드 */
+/* 감사 로그 목록 조회 처리 */
 async function loadAuditLogs(page) {
-    // API 인증을 위해 로그인 시 저장된 accessToken 조회
+    // 조회 조건과 인증 토큰 준비
     const token = localStorage.getItem('accessToken');
     const params = new URLSearchParams();
 
-    // 조회 API에 전달할 페이지/필터 조건 생성
+    // 페이지와 필터 조건 생성
     auditCurrentPage = Math.max(page, 0);
     params.set('page', auditCurrentPage);
     params.set('size', '20');
@@ -29,51 +28,50 @@ async function loadAuditLogs(page) {
     appendParam(params, 'startDate', document.getElementById('auditStartDate').value);
 
     try {
-        // 감사 로그 조회 API 호출
+        // 감사 로그 조회 요청
         const response = await fetch('/api/management/audit-logs?' + params.toString(), {
             headers: token ? {Authorization: 'Bearer ' + token} : {}
         });
 
-        // 401/403/500 등 정상 응답이 아니면 catch로 넘김
+        // 오류 응답이면 예외 처리로 이동
         if (!response.ok) {
             throw new Error('감사 로그 조회 실패: ' + response.status);
         }
 
-        // 서버 응답을 현재 화면 상태에 저장하고 테이블/페이지 정보 갱신
+        // 서버 응답을 현재 화면 상태에 저장
         const data = await response.json();
         auditCurrentLogs = data.content || [];
         auditCurrentPage = data.page || 0;
         auditTotalPages = data.totalPages || 0;
 
+        // 테이블과 페이지 정보 렌더링
         renderAuditLogTable(auditCurrentLogs);
         renderAuditPageInfo(data);
     } catch (error) {
-        // 조회 실패 시 콘솔에는 원인을 남기고 화면에는 사용자용 메시지 표시
+        // 오류 추적용 콘솔 기록 유지
         console.error(error);
         renderAuditError('감사 로그를 불러오지 못했습니다.');
     }
 }
 
-/* 비어 있지 않은 검색 조건만 URLSearchParams에 추가하는 메서드 */
+/* 비어 있지 않은 검색 조건 추가 처리 */
 function appendParam(params, key, value) {
-    // 값이 있는 필터만 query string에 추가
     if (value) {
         params.set(key, value);
     }
 }
 
-/* 조회된 감사 로그 목록을 테이블 행 HTML로 렌더링하는 메서드 */
+/* 감사 로그 테이블 렌더링 처리 */
 function renderAuditLogTable(logs) {
-    // 감사 로그 목록을 삽입할 tbody 요소 조회
     const tbody = document.getElementById('auditLogTableBody');
 
-    // 조회 결과가 없으면 빈 결과 안내 행 표시
+    // 조회 결과가 없으면 빈 상태 행 표시
     if (!logs.length) {
         tbody.innerHTML = '<tr><td class="audit-empty-row" colspan="7">조회된 감사 로그가 없습니다.</td></tr>';
         return;
     }
 
-    // 조회 결과를 테이블 row HTML로 변환
+    // 조회 결과를 테이블 행 HTML로 변환
     tbody.innerHTML = logs.map((log, index) => `
         <tr onclick="showAuditLogDetail(${index})">
             <td>${escapeHtml(formatDateTime(log.occurredAt))}</td>
@@ -87,43 +85,38 @@ function renderAuditLogTable(logs) {
     `).join('');
 }
 
-/* 현재 페이지, 전체 페이지, 전체 건수를 화면 하단에 표시하는 메서드 */
+/* 감사 로그 페이지 정보 표시 처리 */
 function renderAuditPageInfo(data) {
-    // 페이지 정보 텍스트를 계산해서 페이지네이션 영역에 반영
     document.getElementById('auditPageInfo').innerText =
         `${(data.page || 0) + 1} / ${data.totalPages || 1} (총 ${data.totalElements || 0}건)`;
 }
 
-/* 조회 실패 또는 오류 상황을 테이블 영역에 표시하는 메서드 */
+/* 감사 로그 조회 오류 표시 처리 */
 function renderAuditError(message) {
-    // 오류 메시지를 테이블 빈 행으로 표시
     const tbody = document.getElementById('auditLogTableBody');
     tbody.innerHTML = `<tr><td class="audit-empty-row" colspan="7">${escapeHtml(message)}</td></tr>`;
 
-    // 페이지 정보도 빈 상태로 초기화
+    // 페이지 정보도 빈 상태로 초기화 처리
     document.getElementById('auditPageInfo').innerText = '0 / 0';
 }
 
-/* 이전/다음 버튼 클릭 시 감사 로그 페이지를 이동하는 메서드 */
+/* 감사 로그 페이지 이동 처리 */
 function moveAuditPage(delta) {
-    // 현재 페이지 기준으로 이동할 페이지 번호 계산
     const nextPage = auditCurrentPage + delta;
 
-    // 범위를 벗어난 페이지 요청은 무시
+    // 조회 가능 범위를 벗어나면 요청하지 않음
     if (nextPage < 0 || nextPage >= auditTotalPages) {
         return;
     }
 
-    // 유효한 페이지면 해당 페이지 감사 로그 조회
     loadAuditLogs(nextPage);
 }
 
-/* 선택한 감사 로그 행의 상세 정보를 모달에 표시하는 메서드 */
+/* 감사 로그 상세 모달 표시 처리 */
 function showAuditLogDetail(index) {
-    // 테이블에서 클릭한 row의 로그 데이터를 현재 목록에서 조회
     const log = auditCurrentLogs[index];
 
-    // 대상 로그가 없으면 상세 모달 표시 중단
+    // 대상 로그가 없으면 모달 표시 중단
     if (!log) {
         return;
     }
@@ -153,44 +146,39 @@ function showAuditLogDetail(index) {
         flushedAt: log.flushedAt
     }, null, 2);
 
-    // 상세 모달을 화면에 표시
     document.getElementById('auditLogModal').style.display = 'flex';
 }
 
-/* 감사 로그 상세 모달을 닫는 메서드 */
+/* 감사 로그 상세 모달 닫기 처리 */
 function closeAuditLogModal() {
-    // 상세 모달을 숨김 처리
     document.getElementById('auditLogModal').style.display = 'none';
 }
 
-/* 현재 필터 조건을 적용해 감사 로그 CSV 파일을 다운로드하는 메서드 */
+/* 감사 로그 CSV 다운로드 처리 */
 async function exportAuditCsv() {
-    // CSV 다운로드 API에도 JWT 인증 헤더가 필요하므로 accessToken 조회
+    // 현재 필터 조건과 인증 토큰 준비
     const token = localStorage.getItem('accessToken');
     const params = new URLSearchParams();
 
-    // 현재 화면 필터 조건을 CSV 다운로드에도 동일하게 적용
     appendParam(params, 'action', document.getElementById('auditAction').value);
     appendParam(params, 'result', document.getElementById('auditResult').value);
     appendParam(params, 'actorNo', document.getElementById('auditActorNo').value.trim());
     appendParam(params, 'startDate', document.getElementById('auditStartDate').value);
 
     try {
-        // CSV 파일 다운로드 API 호출
+        // CSV 파일 다운로드 요청
         const response = await fetch('/api/management/audit-logs/export.csv?' + params.toString(), {
             headers: token ? {Authorization: 'Bearer ' + token} : {}
         });
 
-        // 다운로드 실패 응답이면 catch로 넘김
+        // 다운로드 실패 응답이면 예외 처리로 이동
         if (!response.ok) {
             throw new Error('CSV 다운로드 실패: ' + response.status);
         }
 
-        // CSV 응답을 Blob으로 변환
+        // Blob URL과 임시 링크로 파일 다운로드 처리
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-
-        // 임시 링크를 만들어 클릭시킨 뒤 다운로드 시작
         const link = document.createElement('a');
         link.href = url;
         link.download = 'audit-logs.csv';
@@ -198,48 +186,43 @@ async function exportAuditCsv() {
         link.click();
         link.remove();
 
-        // 임시 Blob URL 해제
         URL.revokeObjectURL(url);
     } catch (error) {
-        // 실패 원인을 콘솔에 남기고 사용자에게 알림 표시
+        // 오류 추적용 콘솔 기록 유지
         console.error(error);
         alert('CSV 다운로드에 실패했습니다.');
     }
 }
 
-/* 행위자 사번과 역할을 한 칸에 표시하기 위한 문자열로 변환하는 메서드 */
+/* 감사 로그 행위자 표시값 변환 처리 */
 function formatActor(log) {
-    // 행위자 사번과 역할이 모두 없으면 '-' 표시
     if (!log.actorNo && !log.actorRole) {
         return '-';
     }
 
-    // 사번과 역할을 함께 표시
     return `${log.actorNo || '-'} (${log.actorRole || '-'})`;
 }
 
-/* 서버에서 받은 날짜 문자열을 한국어 로케일 기준으로 변환하는 메서드 */
+/* 날짜/시간 표시 형식 변환 처리 */
 function formatDateTime(value) {
-    // 날짜 값이 없으면 '-' 표시
+    // 값이 없으면 빈 날짜 표시
     if (!value) {
         return '-';
     }
 
-    // 서버 날짜 값을 Date 객체로 변환
     const date = new Date(value);
 
-    // 브라우저가 해석하지 못하는 날짜 값이면 원본 값 반환
+    // 해석할 수 없는 값은 원본 유지
     if (Number.isNaN(date.getTime())) {
         return value;
     }
 
-    // 유효한 날짜 값이면 한국어 로케일 문자열로 변환
     return date.toLocaleString('ko-KR');
 }
 
-/* 감사 로그 액션 enum 값을 화면 표시용 라벨로 변환하는 메서드 */
+/* 감사 로그 액션 표시값 변환 처리 */
 function formatAction(action) {
-    // DB enum 값은 유지하고, 화면에서는 영어(한글) 형태로 표시
+    // DB enum 값은 유지하고 화면에는 한글 설명을 함께 표시
     const actionLabels = {
         CREATE: 'CREATE(생성)',
         READ: 'READ(조회)',
@@ -253,13 +236,12 @@ function formatAction(action) {
         EXPORT: 'EXPORT(내보내기)'
     };
 
-    // 매핑된 라벨이 있으면 사용하고 없으면 원본 값 또는 '-' 표시
     return actionLabels[action] || action || '-';
 }
 
-/* 감사 대상 리소스 타입 enum 값을 화면 표시용 라벨로 변환하는 메서드 */
+/* 감사 대상 리소스 표시값 변환 처리 */
 function formatTargetType(targetType) {
-    // 감사 대상 리소스도 화면에서만 한글 설명을 덧붙임
+    // DB enum 값은 유지하고 화면에는 한글 설명을 함께 표시
     const targetTypeLabels = {
         AUTH: 'AUTH(인증)',
         EMPLOYEE: 'EMPLOYEE(직원)',
@@ -269,75 +251,63 @@ function formatTargetType(targetType) {
         BOARD_COMMENT: 'BOARD_COMMENT(댓글)'
     };
 
-    // 매핑된 라벨이 있으면 사용하고 없으면 원본 값 또는 '-' 표시
     return targetTypeLabels[targetType] || targetType || '-';
 }
 
-/* 감사 액션 타입에 따라 배지 색상 클래스를 선택하는 메서드 */
+/* 감사 액션 배지 클래스 선택 처리 */
 function getActionClass(action) {
-    // 생성 액션은 create 색상 사용
     if (action === 'CREATE') {
         return 'create';
     }
 
-    // 조회 액션은 read 색상 사용
     if (action === 'READ') {
         return 'read';
     }
 
-    // 수정 액션은 update 색상 사용
     if (action === 'UPDATE') {
         return 'update';
     }
 
-    // 삭제 액션은 delete 색상 사용
     if (action === 'DELETE') {
         return 'delete';
     }
 
-    // 로그인 액션은 login 색상 사용
     if (action === 'LOGIN') {
         return 'login';
     }
 
-    // 로그인 실패 액션은 login-fail 색상 사용
     if (action === 'LOGIN_FAIL') {
         return 'login-fail';
     }
 
-    // 로그아웃 액션은 logout 색상 사용
     if (action === 'LOGOUT') {
         return 'logout';
     }
 
-    // 권한 변경 액션은 permission 색상 사용
     if (action === 'PERMISSION_CHANGE') {
         return 'permission';
     }
 
-    // AI 요청 액션은 ai-request 색상 사용
     if (action === 'AI_REQUEST') {
         return 'ai-request';
     }
 
-    // 내보내기 액션은 export 색상 사용
     if (action === 'EXPORT') {
         return 'export';
     }
 
-    // 알 수 없는 액션은 기본 read 색상 사용
+    // 알 수 없는 액션은 기본 read 색상 처리
     return 'read';
 }
 
-/* 감사 로그 결과 값에 따라 성공/실패 CSS 클래스를 반환하는 메서드 */
+/* 감사 로그 결과 상태 클래스 선택 처리 */
 function getResultClass(result) {
-    // 실패 로그는 빨간색, 그 외 결과는 성공 색상으로 표시
     return result === 'FAIL' ? 'audit-status-fail' : 'audit-status-success';
 }
 
-/* 서버 응답 문자열을 HTML에 안전하게 삽입하기 위해 특수문자를 이스케이프하는 메서드 */
+/* HTML 특수 문자 이스케이프 처리 */
 function escapeHtml(value) {
-    // 서버 응답 값이 null/undefined여도 문자열로 변환해 처리
+    // 서버 응답 값을 문자열로 변환한 뒤 스크립트 삽입 방지
     return String(value)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
@@ -346,12 +316,10 @@ function escapeHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
-/* 모달 바깥 영역 클릭 시 상세 모달을 닫는 이벤트 메서드 */
+/* 모달 배경 클릭 시 상세 모달 닫기 처리 */
 window.addEventListener('click', function (event) {
-    // 현재 상세 모달 DOM 조회
     const modal = document.getElementById('auditLogModal');
 
-    // 클릭 대상이 모달 배경이면 상세 모달 닫기
     if (event.target === modal) {
         closeAuditLogModal();
     }

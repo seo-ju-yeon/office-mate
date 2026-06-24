@@ -1,15 +1,15 @@
-/* 전역 변수 설정 */
-let currentEmpNo = ''; // 현재 로그인한 사원 번호
-let allTasks = []; // 배정된 모든 업무 리스트 (페이징용)
-let currentPage = 1; // 업무 리스트 현재 페이지
-const pageSize = 5; // 한 페이지당 노출 업무 수
+/* 대시보드 전역 상태 */
+let currentEmpNo = ''; // 현재 로그인 사번
+let allTasks = []; // 배정 업무 전체 목록
+let currentPage = 1; // 업무 목록 현재 페이지
+const pageSize = 5; // 페이지당 업무 노출 수
 
-/* 초기 로드 함수 */
+/* 대시보드 초기화 처리 */
 document.addEventListener('DOMContentLoaded', () => {
-    loadCurrentUser(); // 사용자 정보 확인 및 데이터 호출
+    loadCurrentUser(); // 사용자 정보 확인 후 데이터 호출
     lucide.createIcons(); // 아이콘 렌더링
 
-    // 30초 간격으로 서버에 읽지 않은 새 알림이 있는지 확인 (Polling)
+    // 30초 간격으로 미확인 알림 폴링
     setInterval(() => {
         if (currentEmpNo) {
             checkNewNotifications();
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 30000);
 });
 
-/* 현재 로그인 사용자 정보 조회 및 세션 유효성 검사 */
+/* 현재 로그인 사용자 조회 및 세션 검증 처리 */
 async function loadCurrentUser() {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
@@ -43,24 +43,24 @@ async function loadCurrentUser() {
 
         currentEmpNo = data.employeeNo;
         document.getElementById('welcome-name').innerText = data.name;
-        fetchDashboardData(); // 사용자 확인 후 대시보드 데이터 호출
+        fetchDashboardData(); // 사용자 확인 후 대시보드 데이터 조회
     } catch (error) {
         clearTokens();
         window.location.href = '/login';
     }
 }
 
-/* 대시보드 전체 데이터 호출 */
+/* 대시보드 전체 데이터 조회 처리 */
 async function fetchDashboardData() {
-    fetchStats(); // 상단 숫자 통계
-    fetchMyTasks(); // 내 업무 리스트
-    fetchNotices(); // 공지 사항 5개 로드
-    checkNewNotifications(); // 최초 로드 시 알림 확인
+    fetchStats(); // 상단 숫자 통계 조회
+    fetchMyTasks(); // 내 업무 목록 조회
+    fetchNotices(); // 최신 공지 5개 조회
+    checkNewNotifications(); // 최초 로드 시 알림 조회
 }
 
 /*
-공지사항 최신 5개 조회 - API 호출 후 렌더링 함수에 데이터를 전달함.
-서버가 최신순으로 반환하므로 새 공지 등록 시 가장 오래된 항목은 자동으로 밀려남
+공지사항 최신 5개 조회 처리
+서버가 최신순으로 반환하므로 새 공지 등록 시 오래된 항목은 자동 제외됨
 */
 const NOTICE_MAX = 5;
 
@@ -72,7 +72,7 @@ async function fetchNotices() {
             headers: {'Authorization': 'Bearer ' + localStorage.getItem('accessToken')}
         });
 
-        // 서버 응답이 NOTICE_MAX를 초과하더라도 최대 5개만 렌더링
+        // 서버 응답이 NOTICE_MAX를 초과해도 최대 5개만 렌더링
         const notices = (res.data || []).slice(0, NOTICE_MAX);
         renderNotices(notices);
     } catch (e) {
@@ -82,9 +82,8 @@ async function fetchNotices() {
 }
 
 /*
-공지사항 목록 렌더링 - 데이터를 테이블 행으로 변환해 DOM에 삽입함.
-첨부파일 여부는 paperclip 아이콘으로, 댓글 수는 [n] 형태로 표시하며,
-렌더링 후 lucide.createIcons()를 호출해 동적으로 추가된 아이콘을 활성화함
+공지사항 목록 렌더링 처리
+첨부파일과 댓글 수 표시 후 동적 Lucide 아이콘을 다시 렌더링함
 */
 function renderNotices(notices) {
     const tbody = document.getElementById('notice-list');
@@ -98,12 +97,12 @@ function renderNotices(notices) {
     tbody.innerHTML = notices.map(n => {
         const date = n.postedAt ? n.postedAt.substring(0, 10) : '-';
 
-        // 첨부파일이 있는 경우 paperclip 아이콘 노출
+        // 첨부파일이 있으면 paperclip 아이콘 표시
         const attachment = n.attachmentCount > 0
             ? `<i data-lucide="paperclip" style="width:13px; height:13px; color:#999; flex-shrink:0;"></i>`
             : '';
 
-        // 댓글이 있는 경우 댓글 수를 [n] 형태로 노출
+        // 댓글이 있으면 [n] 형태로 표시
         const comment = n.commentCount > 0
             ? `<span style="font-size:12px; color:#0052CC; font-weight:600; flex-shrink:0;">[${n.commentCount}]</span>`
             : '';
@@ -129,12 +128,12 @@ function renderNotices(notices) {
                 </tr>`;
     }).join('');
 
-    // 동적으로 삽입된 lucide 아이콘 활성화
+    // 동적으로 삽입된 Lucide 아이콘 렌더링
     lucide.createIcons();
 }
 
 
-/* 미확인 알림 확인 및 모달 노출 */
+/* 미확인 알림 확인 및 모달 표시 처리 */
 async function checkNewNotifications() {
     if (!currentEmpNo) return;
 
@@ -143,7 +142,7 @@ async function checkNewNotifications() {
             headers: {'Authorization': 'Bearer ' + localStorage.getItem('accessToken')}
         });
 
-        // 데이터가 있을 경우 알림 모달 구성
+        // 미확인 알림이 있으면 알림 모달 구성
         if (res.status === 200 && res.data && res.data.id) {
             const noti = res.data;
             const modalElement = document.getElementById('notificationModal');
@@ -153,7 +152,7 @@ async function checkNewNotifications() {
             const modalHeader = modalElement.querySelector('.modal-header');
             const modalIconContainer = modalElement.querySelector('.modal-body .bg-light');
 
-            // 알림 유형(프로젝트/업무)에 따라 아이콘 및 제목 동적 변경
+            // 알림 유형에 따라 아이콘과 제목 변경
             if (noti.refType === 'PROJECT') {
                 modalHeader.innerHTML = `<h5 class="modal-title fw-bold"><i data-lucide="folder-plus" class="me-2"></i>새 프로젝트 초대</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>`;
                 modalIconContainer.innerHTML = `<i data-lucide="briefcase" class="text-primary" style="width: 40px; height: 40px;"></i>`;
@@ -169,28 +168,27 @@ async function checkNewNotifications() {
             lucide.createIcons();
             notiModal.show();
 
-            // 모달 내 확인 버튼 클릭 시 읽음 처리 수행
+            // 모달 확인 버튼 클릭 시 읽음 처리
             document.getElementById('confirmNotiBtn').onclick = async () => {
                 try {
-                    // 1. 서버에 읽음 상태 전송 (PATCH)
+                    // 서버에 읽음 상태 전송
                     await axios.patch(`/api/notifications/${noti.id}/read`, {}, {
                         headers: {'Authorization': 'Bearer ' + localStorage.getItem('accessToken')}
                     });
 
-                    // 2. 모달 닫기
+                    // 모달 닫기
                     notiModal.hide();
 
-                    // 3. 업무 배정일 경우 리스트 즉시 갱신
+                    // 업무 배정 알림은 업무 목록 즉시 갱신
                     if (noti.refType === 'PROJECT') {
-                        // 프로젝트 초대 알림은 단순히 닫기만 수행
+                        // 프로젝트 초대 알림은 확인 로그만 남김
                         console.log("프로젝트 초대 확인 완료");
                     } else {
-                        // PROJECT_TASK(업무 배정) 알림일 때
-                        // 질문 없이 바로 내 업무 리스트를 갱신합니다.
+                        // 업무 배정 알림은 내 업무 목록 갱신
                         fetchMyTasks();
                     }
 
-                    // 4. 통계 수치 갱신
+                    // 통계 수치 갱신
                     fetchStats();
 
                 } catch (e) {
@@ -205,7 +203,7 @@ async function checkNewNotifications() {
     }
 }
 
-/* 대시보드 상단 통계 수치(진행중, 마감임박, 지연) 조회 */
+/* 대시보드 상단 통계 조회 처리 */
 async function fetchStats() {
     try {
         const res = await axios.get(`/api/dashboard/stats?empNo=${currentEmpNo}`, {
@@ -219,7 +217,7 @@ async function fetchStats() {
     }
 }
 
-/* 로그인한 사용자에게 배정된 프로젝트 업무 목록 조회 */
+/* 로그인 사용자 배정 업무 목록 조회 처리 */
 async function fetchMyTasks() {
     try {
         const res = await axios.get(`/api/projects/tasks/assigned`, {
@@ -228,14 +226,14 @@ async function fetchMyTasks() {
         });
         allTasks = res.data;
         currentPage = 1;
-        renderTasks(); // 조회 성공 시 화면 렌더링
+        renderTasks(); // 조회 성공 시 업무 목록 렌더링
     } catch (e) {
         console.error("업무 로드 실패", e);
         document.getElementById('assigned-task-list').innerHTML = '<p style="color:#DE350B; font-size:14px;">업무를 불러오지 못했습니다.</p>';
     }
 }
 
-/* 업무 목록 HTML 렌더링 (페이징 포함) */
+/* 업무 목록 렌더링 및 페이징 처리 */
 function renderTasks() {
     const container = document.getElementById('assigned-task-list');
     if (!allTasks || allTasks.length === 0) {
@@ -243,7 +241,7 @@ function renderTasks() {
         return;
     }
     const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000; // 분 단위를 밀리초로 변환
+    const offset = now.getTimezoneOffset() * 60000; // 분 단위 오프셋을 밀리초로 변환
     const today = new Date(now.getTime() - offset).toISOString().split('T')[0];
 
     const totalPages = Math.ceil(allTasks.length / pageSize);
@@ -253,9 +251,9 @@ function renderTasks() {
 
     let html = pagedTasks.map(task => {
         let statusClass = '';
-        // 완료되지 않은 업무 중 마감 기한에 따른 스타일 클래스 지정
+        // 미완료 업무는 마감 기한에 따라 상태 클래스 지정
         if (task.status !== 'DONE') {
-            // 날짜 비교 로직
+            // 오늘/지연 여부 비교
             if (task.dueOn === today) {
                 statusClass = 'due-today'; // 오늘 마감 (노란색)
             } else if (task.dueOn && task.dueOn < today) {
@@ -303,27 +301,23 @@ function renderTasks() {
     container.innerHTML = html;
 }
 
-/*
- * 업무 목록 페이지 이동
- */
+/* 업무 목록 페이지 이동 처리 */
 function changePage(direction) {
     currentPage += direction;
     renderTasks();
 }
 
-/*
- * 업무 진척도 업데이트 (입력 필드 또는 엔터키)
- */
+/* 업무 진척도 수정 요청 처리 */
 async function updateProgress(taskId, progress) {
     try {
         const progressRate = parseInt(progress);
-        let newStatus = 'IN_PROGRESS'; // 기본 상태는 진행 중
+        let newStatus = 'IN_PROGRESS'; // 기본 진행 상태
 
-        // 진척도에 따른 상태값 세분화
+        // 진척도에 따른 상태값 변환
         if (progressRate === 100) {
             newStatus = 'DONE'; // 완료
         } else if (progressRate === 0) {
-            newStatus = 'TODO'; // 시작 전 (※ 백엔드에 설정된 '대기/시작 전' 상태 코드로 변경해주세요. 예: 'TODO', 'WAITING', 'NOT_STARTED' 등)
+            newStatus = 'TODO'; // 시작 전 상태 코드
         }
 
         await axios.patch(`/api/dashboard/tasks/${taskId}`,
@@ -334,7 +328,7 @@ async function updateProgress(taskId, progress) {
             { headers: {'Authorization': 'Bearer ' + localStorage.getItem('accessToken')} }
         );
 
-        // 상태와 진척도가 변경되었으므로 통계와 리스트를 모두 새로고침하는 것이 좋습니다.
+        // 상태와 진척도 변경 후 통계와 목록 갱신
         fetchStats();
         fetchMyTasks();
     } catch (e) {
@@ -343,9 +337,7 @@ async function updateProgress(taskId, progress) {
     }
 }
 
-/*
- * 로그아웃 시 로컬 스토리지 데이터 삭제
- */
+/* 브라우저 로그인 정보 제거 처리 */
 function clearTokens() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');

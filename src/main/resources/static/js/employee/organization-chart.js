@@ -1,4 +1,4 @@
-// 서버는 enum 코드(FRONTEND 등)를 내려주므로 화면에서는 한국어 표시명으로 변환
+// 서버 부서 enum 코드의 화면 표시명
 const departmentLabels = {
     FRONTEND: '프론트엔드팀',
     BACKEND: '백엔드팀',
@@ -28,44 +28,41 @@ const statusLabels = {
     RESIGNED: '퇴사'
 };
 
-// 조직도 API에서 받아온 직원 목록을 저장하는 화면 전역 상태
+// 조직도 API에서 조회한 직원 목록
 let employees = [];
-// 현재 선택된 부서 필터. ALL이면 전체 직원 표시
+// 현재 선택된 부서 필터
 let selectedDepartment = 'ALL';
-// 부서별 보기에서 사용할 재직 상태 필터. 전체 조직도에서는 ACTIVE만 강제 표시
+// 부서별 보기에서 사용하는 재직 상태 필터
 let selectedStatus = 'ACTIVE';
-// 현재 로그인 사용자의 시스템 역할. SUPER이면 직원 관리 모달 사용 가능
+// 현재 로그인 사용자의 시스템 역할
 let currentUserRole = null;
-// 오른쪽 직원 목록에서 펼쳐진 부서 섹션을 저장하는 화면 전역 상태
+// 오른쪽 직원 목록에서 펼쳐진 부서 섹션
 const expandedDepartments = new Set(Object.keys(departmentLabels));
 // 왼쪽 조직도 트리의 전체 노드 펼침 여부
 let organizationTreeExpanded = true;
-// 왼쪽 조직도 트리에서 펼쳐진 부서 노드를 저장하는 화면 전역 상태
+// 왼쪽 조직도 트리에서 펼쳐진 부서 노드
 const expandedTreeDepartments = new Set(Object.keys(departmentLabels));
-// 부서별 직원 카드 목록의 현재 페이지를 저장하는 화면 전역 상태
+// 부서별 직원 카드 목록의 현재 페이지
 const departmentPageMap = {};
 // 부서별 직원 카드 목록은 한 화면에 4명씩 표시
 const DEPARTMENT_PAGE_SIZE = 4;
 
-/* 조직도 화면 최초 진입 시 아이콘, 검색 이벤트, 로그인 사용자, 조직도 데이터를 초기화하는 메서드 */
+/* 조직도 화면 초기화 처리 */
 document.addEventListener('DOMContentLoaded', async function () {
-    // lucide 아이콘 초기화
+    // Lucide 아이콘 초기화
     lucide.createIcons();
 
-    // 검색어 입력 시 부서별 페이지를 첫 페이지로 돌린 뒤 조직도 다시 렌더링
+    // 검색어 변경 시 페이지 초기화 후 조직도 재렌더링
     document.getElementById('employee-search').addEventListener('input', function () {
         resetDepartmentPages();
         renderOrganization();
     });
 
-    // 현재 로그인 사용자 정보 조회
     await loadLoginUser();
-
-    // 조직도 직원 목록 조회
     await loadOrganization();
 });
 
-/* 현재 로그인 사용자 정보를 조회하고 레이아웃 사용자 이름을 갱신하는 메서드 */
+/* 현재 로그인 사용자 정보 조회 처리 */
 async function loadLoginUser() {
     /*
      * layout.html의 사용자 이름은 기본값이 "방문자"임
@@ -74,28 +71,28 @@ async function loadLoginUser() {
      */
     const accessToken = localStorage.getItem('accessToken');
 
-    // 토큰이 없으면 로그인 화면으로 이동
+    // 토큰이 없으면 로그인 화면 이동 처리
     if (!accessToken) {
         window.location.href = '/login';
         return;
     }
 
     try {
-        // 현재 로그인 사용자 정보 조회 API 호출
+        // 현재 로그인 사용자 정보 조회 요청
         const response = await fetch('/api/auth/me', {
             headers: {
                 'Authorization': 'Bearer ' + accessToken
             }
         });
 
-        // 사용자 조회 실패 시 토큰을 정리하고 로그인 화면으로 이동
+        // 사용자 조회 실패 시 토큰 정리 후 로그인 화면 이동
         if (!response.ok) {
             clearTokens();
             window.location.href = '/login';
             return;
         }
 
-        // 응답에서 현재 사용자 역할과 이름을 화면 상태에 반영
+        // 현재 사용자 역할과 레이아웃 이름 반영
         const data = await response.json();
         currentUserRole = data.role;
         const layoutUserName = document.getElementById('layout-user-name');
@@ -103,75 +100,70 @@ async function loadLoginUser() {
             layoutUserName.innerText = data.name;
         }
     } catch (error) {
-        // 통신 실패 시 인증 상태를 초기화하고 로그인 화면으로 이동
+        // 통신 실패 시 인증 상태 초기화
         clearTokens();
         window.location.href = '/login';
     }
 }
 
-/* 조직도에 표시할 직원 목록을 서버에서 조회하는 메서드 */
+/* 조직도 직원 목록 조회 처리 */
 async function loadOrganization() {
-    // 조직도 API 인증에 사용할 accessToken 조회
     const accessToken = localStorage.getItem('accessToken');
     try {
-        // 로그인 사용자가 접근 가능한 조직도 직원 목록 API 호출
+        // 조직도 직원 목록 조회 요청
         const response = await fetch('/api/management/employees/organization', {
             headers: {'Authorization': 'Bearer ' + accessToken}
         });
         if (!response.ok) throw new Error();
 
-        // 서버 직원 목록을 화면 전역 상태에 저장
         employees = await response.json();
 
-        // 이전 조회 실패 메시지가 남아 있으면 숨김 처리
+        // 이전 조회 실패 메시지 초기화
         const errBox = document.getElementById('organization-error');
         errBox.innerText = '';
         errBox.classList.remove('open');
 
-        // 데이터를 받은 뒤 탭, 트리, 카드 영역을 한 번에 다시 렌더링
+        // 조회 데이터 기준으로 전체 조직도 렌더링
         renderOrganization();
     } catch (error) {
-        // 조회 실패 메시지를 화면에 표시
+        // 조회 실패 메시지 표시
         const errBox = document.getElementById('organization-error');
         errBox.innerText = '데이터를 불러올 수 없습니다.';
         errBox.classList.add('open');
     }
 }
 
-/* 부서 탭, 트리, 상태 필터, 직원 카드 목록을 한 번에 다시 그리는 메서드 */
+/* 조직도 주요 영역 렌더링 처리 */
 function renderOrganization() {
-    // 조직도 화면의 주요 영역은 같은 employees 데이터를 공유
     renderDepartmentTabs();
     renderOrganizationTree();
     renderStatusFilter();
     renderMemberGrid();
 
-    // 새로 삽입된 아이콘 요소를 lucide SVG로 변환
+    // 동적 HTML 삽입 후 Lucide 아이콘 렌더링
     lucide.createIcons();
 }
 
-/* 부서별 직원 수를 계산해 가로 탭 UI를 렌더링하는 메서드 */
+/* 부서 탭 렌더링 처리 */
 function renderDepartmentTabs() {
-    // 부서 탭을 삽입할 DOM 조회
     const deptContainer = document.getElementById('dept-list');
 
     // 부서별 재직자 수와 전체 재직자 수 계산
     const counts = countByDepartment();
     const activeEmployeeCount = employees.filter(emp => emp.status === 'ACTIVE').length;
 
-    // 조직도 전체 탭과 각 부서 탭 HTML 생성
+    // 전체 탭과 부서별 탭 HTML 생성
     let html = createTabHtml('ALL', '조직도 전체', activeEmployeeCount);
     Object.keys(departmentLabels).forEach(key => {
         html += createTabHtml(key, departmentLabels[key], counts[key] || 0);
     });
 
-    // 생성한 탭 HTML을 화면에 반영
     deptContainer.innerHTML = html;
 }
 
-/* 부서 탭 버튼 하나의 HTML 문자열을 만드는 메서드 */
+/* 부서 탭 버튼 HTML 생성 처리 */
 function createTabHtml(dept, label, count) {
-    // 선택된 부서라면 active 클래스로 현재 필터를 시각적으로 표시
+    // 선택된 부서는 active 클래스로 표시
     const active = selectedDepartment === dept ? ' active' : '';
     return `
         <button type="button" class="dept-tab${active}" onclick="selectDepartment('${dept}')">
@@ -181,9 +173,8 @@ function createTabHtml(dept, label, count) {
     `;
 }
 
-/* 가로 탭이나 트리에서 선택한 부서 기준으로 조직도 필터를 바꾸는 메서드 */
+/* 부서 선택 필터 변경 처리 */
 function selectDepartment(dept) {
-    // 선택된 부서를 화면 상태에 저장
     selectedDepartment = dept;
 
     // 전체 조직도는 항상 재직자만 보여주는 정책이므로 ACTIVE로 고정
@@ -195,7 +186,7 @@ function selectDepartment(dept) {
     // 부서 전환은 "새 부서 전체를 보겠다"는 동작이므로 검색어 초기화
     document.getElementById('employee-search').value = '';
 
-    // 특정 부서를 선택하면 해당 부서 섹션이 펼쳐진 상태로 보이게 처리
+    // 특정 부서 선택 시 해당 부서 섹션 펼침 처리
     if (dept !== 'ALL') {
         expandedDepartments.add(dept);
         organizationTreeExpanded = true;
@@ -205,20 +196,19 @@ function selectDepartment(dept) {
     renderOrganization();
 }
 
-/* 전체 > 부서 > 직원 형태의 조직도 트리 UI를 렌더링하는 메서드 */
+/* 조직도 트리 렌더링 처리 */
 function renderOrganizationTree() {
-    // 트리를 삽입할 DOM과 부서별 재직자 카운트 조회
     const treeContainer = document.getElementById('organization-tree');
     const counts = countByDepartment();
     const activeEmployeeCount = employees.filter(emp => emp.status === 'ACTIVE').length;
 
-    // 전체 조직 토글 아래에 부서와 직원을 계층형으로 렌더링
+    // 전체 조직 아래에 부서와 직원을 계층형으로 렌더링
     treeContainer.innerHTML = createTreeRootHtml(activeEmployeeCount, counts);
 }
 
-/* 트리 최상단의 OfficeMate 전체 버튼 HTML을 만드는 메서드 */
+/* 조직도 트리 최상단 HTML 생성 처리 */
 function createTreeRootHtml(count, counts) {
-    // 전체 조직도 선택 상태면 active 클래스 추가
+    // 전체 조직도 선택 상태면 active 클래스 적용
     const active = selectedDepartment === 'ALL' ? ' active' : '';
     const iconName = organizationTreeExpanded ? 'chevron-down' : 'chevron-right';
     const departmentHtml = organizationTreeExpanded
@@ -246,14 +236,14 @@ function createTreeRootHtml(count, counts) {
     `;
 }
 
-/* 트리의 부서 노드와 직원 자식 노드 HTML을 함께 만드는 메서드 */
+/* 조직도 트리 부서 노드 HTML 생성 처리 */
 function createTreeDepartmentHtml(dept, label, count, deptEmployees) {
-    // 선택된 부서면 active 클래스 추가
+    // 선택된 부서면 active 클래스 적용
     const active = selectedDepartment === dept ? ' active' : '';
     const expanded = expandedTreeDepartments.has(dept);
     const iconName = expanded ? 'chevron-down' : 'chevron-right';
 
-    // 부서에 속한 직원 자식 노드 HTML 생성
+    // 부서에 속한 직원 노드 HTML 생성
     const employeeHtml = deptEmployees.map(createTreeEmployeeHtml).join('');
 
     return `
@@ -276,22 +266,21 @@ function createTreeDepartmentHtml(dept, label, count, deptEmployees) {
     `;
 }
 
-/* 왼쪽 트리의 전체 조직 노드를 접거나 펼치는 메서드 */
+/* 전체 조직 트리 펼침 전환 처리 */
 function toggleOrganizationTree(event) {
-    // 토글 버튼 클릭이 상위 선택 이벤트로 번지지 않도록 차단
+    // 토글 클릭이 상위 선택 이벤트로 번지지 않도록 차단
     event.stopPropagation();
 
-    // 전체 조직 노드 펼침 상태 전환
     organizationTreeExpanded = !organizationTreeExpanded;
     renderOrganization();
 }
 
-/* 왼쪽 트리의 부서 노드를 접거나 펼치는 메서드 */
+/* 부서 트리 펼침 전환 처리 */
 function toggleTreeDepartment(event, department) {
-    // 토글 버튼 클릭이 부서 선택 이벤트로 번지지 않도록 차단
+    // 토글 클릭이 부서 선택 이벤트로 번지지 않도록 차단
     event.stopPropagation();
 
-    // 펼쳐져 있으면 접고, 접혀 있으면 펼침
+    // 펼쳐져 있으면 접고, 접혀 있으면 펼침 처리
     if (expandedTreeDepartments.has(department)) {
         expandedTreeDepartments.delete(department);
     } else {
@@ -301,7 +290,7 @@ function toggleTreeDepartment(event, department) {
     renderOrganization();
 }
 
-/* 트리 안에서 직원 한 명을 버튼 HTML로 만드는 메서드 */
+/* 트리 직원 버튼 HTML 생성 처리 */
 function createTreeEmployeeHtml(emp) {
     // 직원 직급 코드를 화면 표시명으로 변환
     const posName = positionLabels[emp.position] || emp.position;
@@ -316,7 +305,7 @@ function createTreeEmployeeHtml(emp) {
     `;
 }
 
-/* 트리에서 선택한 직원이 바로 보이도록 부서와 검색어를 설정하는 메서드 */
+/* 트리 직원 선택 시 카드 포커스 처리 */
 function focusEmployee(employeeNo) {
     // 트리에서 직원을 누르면 해당 직원이 속한 부서로 이동하고,
     // 검색어를 사번으로 채워 직원 카드가 바로 좁혀지게 함
@@ -334,7 +323,7 @@ function focusEmployee(employeeNo) {
     renderOrganization();
 }
 
-/* 현재 부서, 상태, 검색어 필터를 반영해 직원 카드 목록을 렌더링하는 메서드 */
+/* 직원 카드 목록 렌더링 처리 */
 function renderMemberGrid() {
     // 직원 카드 영역과 필터링된 직원 목록 조회
     const grid = document.getElementById('member-grid');
@@ -351,43 +340,43 @@ function renderMemberGrid() {
         return;
     }
 
-    // 필터링된 직원을 부서별로 묶어 접이식 섹션 HTML로 렌더링
+    // 필터링된 직원을 부서별 섹션으로 렌더링
     grid.innerHTML = createDepartmentSectionsHtml(filtered);
 }
 
-/* 필터링된 직원 목록을 부서별 접이식 섹션 HTML로 변환하는 메서드 */
+/* 부서별 직원 섹션 HTML 변환 처리 */
 function createDepartmentSectionsHtml(filteredEmployees) {
-    // 직원 목록을 department 코드 기준으로 그룹핑
+    // 직원 목록을 부서 코드 기준으로 그룹핑
     const groupedEmployees = groupEmployeesByDepartment(filteredEmployees);
 
-    // 전체 조직도에서는 모든 부서를 순서대로 보여주고, 특정 부서 선택 시 해당 부서만 보여줌
+    // 전체 조직도는 모든 부서, 특정 부서 선택 시 해당 부서만 표시
     const departments = selectedDepartment === 'ALL'
         ? Object.keys(departmentLabels)
         : [selectedDepartment];
 
-    // 검색 중이면 검색 결과가 있는 부서를 자동으로 펼침
+    // 검색 중이면 결과가 있는 부서 자동 펼침 처리
     const keyword = getSearchKeyword();
 
     return departments
         .map(function (department) {
-            // 현재 부서에 해당하는 직원 목록 조회
+            // 현재 부서 직원 목록 조회
             const departmentEmployees = groupedEmployees[department] || [];
 
-            // 직원이 없는 부서는 화면에 표시하지 않음
+            // 직원이 없는 부서는 표시하지 않음
             if (departmentEmployees.length === 0) {
                 return '';
             }
 
-            // 검색어가 있으면 결과가 있는 부서는 펼침, 검색어가 없으면 사용자가 토글한 상태 사용
+            // 검색어가 있으면 펼침 상태를 강제 적용
             const expanded = keyword ? true : expandedDepartments.has(department);
             return createDepartmentSectionHtml(department, departmentEmployees, expanded);
         })
         .join('');
 }
 
-/* 직원 목록을 부서 코드 기준 객체로 묶는 메서드 */
+/* 직원 목록 부서별 그룹핑 처리 */
 function groupEmployeesByDepartment(items) {
-    // 부서 코드를 key로, 해당 부서 직원 배열을 value로 저장
+    // 부서 코드를 key로 직원 배열 저장
     return items.reduce(function (groups, employee) {
         const department = employee.department;
         groups[department] = groups[department] || [];
@@ -396,7 +385,7 @@ function groupEmployeesByDepartment(items) {
     }, {});
 }
 
-/* 부서 하나의 접이식 직원 목록 섹션 HTML을 만드는 메서드 */
+/* 부서별 직원 목록 섹션 HTML 생성 처리 */
 function createDepartmentSectionHtml(department, departmentEmployees, expanded) {
     // 부서명과 상태별 인원 수 계산
     const departmentName = departmentLabels[department] || department;
@@ -407,7 +396,7 @@ function createDepartmentSectionHtml(department, departmentEmployees, expanded) 
     const startIndex = currentPage * DEPARTMENT_PAGE_SIZE;
     const pagedEmployees = departmentEmployees.slice(startIndex, startIndex + DEPARTMENT_PAGE_SIZE);
 
-    // 펼침 상태에 따라 아이콘과 본문 노출 여부 결정
+    // 펼침 상태에 따라 아이콘과 본문 노출 결정
     const iconName = expanded ? 'chevron-down' : 'chevron-right';
     const bodyHtml = expanded
         ? `
@@ -432,15 +421,15 @@ function createDepartmentSectionHtml(department, departmentEmployees, expanded) 
     `;
 }
 
-/* 부서별 직원 목록의 현재 페이지 값을 유효한 범위로 보정하는 메서드 */
+/* 부서별 직원 목록 페이지 보정 처리 */
 function getValidDepartmentPage(department, totalPages) {
-    // 페이지가 없거나 전체 페이지가 0이면 첫 페이지로 보정
+    // 페이지가 없거나 전체 페이지가 0이면 첫 페이지 처리
     if (!departmentPageMap[department] || totalPages === 0) {
         departmentPageMap[department] = 0;
         return 0;
     }
 
-    // 필터 변경 등으로 현재 페이지가 마지막 페이지를 넘으면 마지막 페이지로 보정
+    // 필터 변경으로 현재 페이지가 범위를 넘으면 마지막 페이지로 보정
     if (departmentPageMap[department] >= totalPages) {
         departmentPageMap[department] = totalPages - 1;
     }
@@ -448,12 +437,12 @@ function getValidDepartmentPage(department, totalPages) {
     return departmentPageMap[department];
 }
 
-/* 부서별 직원 목록 하단의 페이지 이동 UI를 만드는 메서드 */
+/* 부서별 직원 목록 페이지 UI 생성 처리 */
 function createDepartmentPaginationHtml(department, currentPage, totalPages) {
-    // 4명 이하인 부서도 1 / 1 페이지 정보를 보여주기 위해 최소 1페이지로 표시
+    // 직원 수가 적어도 1 / 1 페이지 정보 표시
     const displayTotalPages = Math.max(totalPages, 1);
 
-    // 첫 페이지와 마지막 페이지에서는 각각 이전/다음 버튼을 비활성화
+    // 첫 페이지와 마지막 페이지에서 이전/다음 버튼 비활성화
     const prevDisabled = currentPage <= 0 ? ' disabled' : '';
     const nextDisabled = currentPage >= displayTotalPages - 1 ? ' disabled' : '';
 
@@ -470,46 +459,46 @@ function createDepartmentPaginationHtml(department, currentPage, totalPages) {
     `;
 }
 
-/* 부서별 직원 카드 목록의 페이지를 이전/다음으로 이동하는 메서드 */
+/* 부서별 직원 카드 페이지 이동 처리 */
 function moveDepartmentPage(department, delta) {
-    // 현재 부서의 필터링된 직원 수를 기준으로 전체 페이지 수 계산
+    // 현재 부서의 필터링된 직원 수 기준으로 전체 페이지 계산
     const departmentEmployees = getFilteredEmployees().filter(emp => emp.department === department);
     const totalPages = Math.ceil(departmentEmployees.length / DEPARTMENT_PAGE_SIZE);
     const currentPage = getValidDepartmentPage(department, totalPages);
     const nextPage = currentPage + delta;
 
-    // 조회 가능한 페이지 범위를 벗어나면 이동하지 않음
+    // 조회 가능 범위를 벗어나면 이동하지 않음
     if (nextPage < 0 || nextPage >= totalPages) {
         return;
     }
 
-    // 부서별 현재 페이지를 저장하고 화면 갱신
+    // 부서별 현재 페이지 저장 후 화면 갱신
     departmentPageMap[department] = nextPage;
     renderOrganization();
 }
 
-/* 부서별 직원 카드 페이지를 모두 첫 페이지로 초기화하는 메서드 */
+/* 부서별 직원 카드 페이지 초기화 처리 */
 function resetDepartmentPages() {
-    // 검색어, 부서, 상태 필터가 바뀌면 기존 페이지 위치가 어긋날 수 있으므로 초기화
+    // 검색어, 부서, 상태 필터 변경 시 기존 페이지 위치 초기화
     Object.keys(departmentPageMap).forEach(function (department) {
         departmentPageMap[department] = 0;
     });
 }
 
-/* 부서별 직원 목록 섹션의 펼침/접힘 상태를 전환하는 메서드 */
+/* 부서별 직원 목록 섹션 펼침 전환 처리 */
 function toggleDepartmentSection(department) {
-    // 펼쳐져 있으면 접고, 접혀 있으면 펼침
+    // 펼쳐져 있으면 접고, 접혀 있으면 펼침 처리
     if (expandedDepartments.has(department)) {
         expandedDepartments.delete(department);
     } else {
         expandedDepartments.add(department);
     }
 
-    // 변경된 펼침 상태를 화면에 반영
+    // 변경된 펼침 상태 화면 반영
     renderOrganization();
 }
 
-/* 부서 선택 상태에 따라 재직/휴직 상태 필터를 표시하거나 숨기는 메서드 */
+/* 재직 상태 필터 렌더링 처리 */
 function renderStatusFilter() {
     /*
      * 전체 조직도는 현재 재직 중인 직원만 보여주는 화면임
@@ -522,7 +511,7 @@ function renderStatusFilter() {
     const tabs = document.getElementById('status-tabs');
     const summary = document.getElementById('status-summary');
 
-    // 전체 조직도에서는 상태 필터를 숨기고 ACTIVE로 강제
+    // 전체 조직도에서는 상태 필터를 숨기고 ACTIVE 강제 처리
     if (selectedDepartment === 'ALL') {
         selectedStatus = 'ACTIVE';
         panel.classList.remove('open');
@@ -535,7 +524,7 @@ function renderStatusFilter() {
     const activeCount = departmentEmployees.filter(emp => emp.status === 'ACTIVE').length;
     const leaveCount = departmentEmployees.filter(emp => emp.status === 'ON_LEAVE').length;
 
-    // 상태 요약과 상태 필터 탭 HTML 반영
+    // 상태 요약과 상태 필터 탭 반영
     summary.innerText = '재직 ' + activeCount + '명 · 휴직 ' + leaveCount + '명';
     tabs.innerHTML = [
         createStatusTabHtml('ALL', '전체', departmentEmployees.length),
@@ -545,7 +534,7 @@ function renderStatusFilter() {
     panel.classList.add('open');
 }
 
-/* 부서별 재직 상태 필터 버튼 HTML을 만드는 메서드 */
+/* 재직 상태 필터 버튼 HTML 생성 처리 */
 function createStatusTabHtml(status, label, count) {
     // 선택된 상태는 active 클래스로 강조
     const active = selectedStatus === status ? ' active' : '';
@@ -556,17 +545,15 @@ function createStatusTabHtml(status, label, count) {
     `;
 }
 
-/* 부서별 직원 목록에서 재직/휴직 상태 필터를 변경하는 메서드 */
+/* 재직 상태 필터 변경 처리 */
 function selectStatus(status) {
-    // 선택된 상태 필터를 화면 상태에 저장
     selectedStatus = status;
 
-    // 변경된 상태 기준으로 조직도 다시 렌더링
     resetDepartmentPages();
     renderOrganization();
 }
 
-/* 직원 객체 하나를 카드 HTML 문자열로 변환하는 메서드 */
+/* 직원 카드 HTML 생성 처리 */
 function createMemberCard(emp) {
     // 이름 첫 글자와 코드 값의 화면 표시명 계산
     const initial = emp.name ? emp.name.substring(0, 1) : '?';
@@ -614,7 +601,7 @@ function createMemberCard(emp) {
     `;
 }
 
-/* SUPER 사용자가 선택한 직원의 관리 정보 수정 모달을 여는 메서드 */
+/* 직원 관리 정보 수정 모달 열기 처리 */
 function openManagementModal(employeeNo) {
     // 선택된 직원 정보 조회
     const employee = employees.find(emp => emp.employeeNo === employeeNo);
@@ -624,7 +611,7 @@ function openManagementModal(employeeNo) {
         return;
     }
 
-    // 직원 현재 정보를 모달 입력값에 채움
+    // 직원 현재 정보를 모달 입력값에 반영
     document.getElementById('management-employee-no').value = employee.employeeNo;
     document.getElementById('management-name').value = employee.name || '';
     document.getElementById('management-department').value = employee.department;
@@ -635,18 +622,18 @@ function openManagementModal(employeeNo) {
     hideManagementMessage();
     toggleResignedOnField();
 
-    // 모달을 열림 상태로 변경
+    // 모달 열림 상태 처리
     const modal = document.getElementById('employee-management-modal');
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
 
-    // 모달 내부 아이콘을 lucide SVG로 변환
+    // 모달 내부 Lucide 아이콘 렌더링
     lucide.createIcons();
 }
 
-/* 직원 관리 정보 수정 모달을 닫는 메서드 */
+/* 직원 관리 정보 수정 모달 닫기 처리 */
 function closeManagementModal() {
-    // 모달을 닫힘 상태로 변경
+    // 모달 닫힘 상태 처리
     const modal = document.getElementById('employee-management-modal');
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
@@ -655,19 +642,19 @@ function closeManagementModal() {
     hideManagementMessage();
 }
 
-/* 재직 상태가 퇴사일 때만 퇴사일 입력 필드를 표시하는 메서드 */
+/* 퇴사일 입력 필드 표시 전환 처리 */
 function toggleResignedOnField() {
     // 현재 선택된 재직 상태와 퇴사일 필드 조회
     const status = document.getElementById('management-status').value;
     const field = document.getElementById('resigned-on-field');
 
-    // 퇴사 상태일 때만 퇴사일 입력 필드 열기
+    // 퇴사 상태일 때만 퇴사일 입력 필드 표시
     field.classList.toggle('open', status === 'RESIGNED');
 }
 
-/* 직원 관리 정보 수정 내용을 서버에 저장하는 메서드 */
+/* 직원 관리 정보 저장 요청 처리 */
 async function saveManagedEmployee(event) {
-    // form 기본 제출을 막고 fetch 기반 저장 사용
+    // 기본 form 제출 대신 fetch 저장 요청 사용
     event.preventDefault();
 
     // 저장 API 호출에 필요한 값 조회
@@ -676,11 +663,11 @@ async function saveManagedEmployee(event) {
     const status = document.getElementById('management-status').value;
     const saveButton = document.getElementById('management-save-button');
 
-    // 중복 제출 방지를 위해 저장 버튼 비활성화
+    // 중복 제출 방지를 위한 저장 버튼 비활성화
     saveButton.disabled = true;
     hideManagementMessage();
 
-    // 서버가 받는 직원 관리 정보 수정 요청 body 생성
+    // 직원 관리 정보 수정 요청 body 생성
     const requestBody = {
         name: document.getElementById('management-name').value.trim(),
         department: document.getElementById('management-department').value,
@@ -693,7 +680,7 @@ async function saveManagedEmployee(event) {
     };
 
     try {
-        // 직원 관리 정보 수정 API 호출
+        // 직원 관리 정보 수정 요청
         const response = await fetch('/api/management/employees/' + employeeNo + '/management', {
             method: 'PATCH',
             headers: {
@@ -703,10 +690,9 @@ async function saveManagedEmployee(event) {
             body: JSON.stringify(requestBody)
         });
 
-        // 서버 응답 JSON 변환
         const data = await response.json();
 
-        // 검증 실패나 권한 오류가 있으면 모달 메시지에 표시
+        // 검증 실패나 권한 오류 메시지 표시
         if (!response.ok) {
             showManagementMessage(data.message || '직원 정보를 수정하지 못했습니다.', 'error');
             return;
@@ -727,23 +713,23 @@ async function saveManagedEmployee(event) {
     }
 }
 
-/* 직원 관리 모달에 성공/오류 메시지를 표시하는 메서드 */
+/* 직원 관리 모달 메시지 표시 처리 */
 function showManagementMessage(message, type) {
-    // 메시지 영역에 문구와 상태 클래스 반영
+    // 메시지 문구와 상태 클래스 반영
     const messageBox = document.getElementById('management-message');
     messageBox.innerText = message;
     messageBox.className = 'modal-message ' + type;
 }
 
-/* 직원 관리 모달 메시지를 초기화하는 메서드 */
+/* 직원 관리 모달 메시지 초기화 처리 */
 function hideManagementMessage() {
-    // 메시지 문구와 상태 클래스를 기본값으로 초기화
+    // 메시지 문구와 상태 클래스 초기화
     const messageBox = document.getElementById('management-message');
     messageBox.innerText = '';
     messageBox.className = 'modal-message';
 }
 
-/* 현재 검색어, 부서, 재직 상태 조건에 맞는 직원 목록을 반환하는 메서드 */
+/* 현재 필터 조건에 맞는 직원 목록 반환 처리 */
 function getFilteredEmployees() {
     // 검색어를 소문자로 변환해 비교 준비
     const keyword = getSearchKeyword();
@@ -759,7 +745,7 @@ function getFilteredEmployees() {
             ? emp.status === 'ACTIVE'
             : (selectedStatus === 'ALL' || emp.status === selectedStatus);
 
-        // 이름, 이메일, 사번, 부서명, 직급명, 상태명 중 검색어 포함 여부 확인
+        // 이름, 이메일, 사번, 부서명, 직급명, 상태명 검색 처리
         const matchText = [
             emp.name,
             emp.email,
@@ -772,25 +758,25 @@ function getFilteredEmployees() {
     });
 }
 
-/* 직원 검색어 입력값을 비교용 소문자 문자열로 정규화하는 메서드 */
+/* 직원 검색어 정규화 처리 */
 function getSearchKeyword() {
-    // 검색어 앞뒤 공백을 제거하고 대소문자 차이를 없애기 위해 소문자로 변환
+    // 공백과 대소문자 차이 제거
     return document.getElementById('employee-search').value.trim().toLowerCase();
 }
 
-/* 부서별 재직자 수를 객체 형태로 계산하는 메서드 */
+/* 부서별 재직자 수 계산 처리 */
 function countByDepartment() {
-    // 부서별 재직자 카운트를 저장할 객체 생성
+    // 부서별 재직자 카운트 저장 객체
     const counts = {};
 
-    // 조직도 전체 기준과 맞추기 위해 ACTIVE 직원만 카운트함
+    // 조직도 전체 기준과 맞추기 위해 ACTIVE 직원만 카운트
     employees.filter(emp => emp.status === 'ACTIVE').forEach(emp => {
         counts[emp.department] = (counts[emp.department] || 0) + 1;
     });
     return counts;
 }
 
-/* 토큰이 없거나 만료된 상태에서 브라우저 저장소를 정리하는 메서드 */
+/* 브라우저 로그인 정보 제거 처리 */
 function clearTokens() {
     // 인증 토큰 제거
     localStorage.removeItem('accessToken');

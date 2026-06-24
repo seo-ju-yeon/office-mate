@@ -1,11 +1,11 @@
 /**
- * 프로젝트 관리 시스템 (Project Management System) (작성자: 강수현)
- * 기능: 프로젝트 생성/삭제/조회, 팀원 초대, 업무 할당 및 상태 관리
+ * 프로젝트 관리 시스템 (작성자: 강수현)
+ * 프로젝트 생성/삭제/조회, 팀원 초대, 업무 할당, 상태 관리 처리
  */
 
-/* 모든 Axios 요청 헤더에 JWT 인증 토큰 자동 삽입 (순서 보장을 위해 상단 배치) */
+/* Axios JWT 인증 헤더 자동 삽입 처리 */
 axios.interceptors.request.use(function (config) {
-    // 로컬 스토리지 또는 세션 스토리지에서 accessToken 검색
+    // Spring Security 적용 후 API 인증 누락 방지를 위해 모든 Axios 요청에 Bearer 토큰 추가
     const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
     if (accessToken) {
         config.headers.Authorization = accessToken.startsWith('Bearer ') ? accessToken : 'Bearer ' + accessToken;
@@ -13,48 +13,48 @@ axios.interceptors.request.use(function (config) {
     return config;
 });
 
-/* 페이지 진입 시 권한 확인 (접근 제어) */
+/* 프로젝트 관리 페이지 접근 권한 확인 처리 */
 const currentRole = localStorage.getItem('role');
 if (currentRole !== 'SUPER' && currentRole !== 'ADMIN') {
     alert("해당 페이지에 접근할 수 있는 권한이 없습니다.");
-    window.location.href = '/dashboard'; // 권한이 없으면 메인 대시보드로 리다이렉트
+    window.location.href = '/dashboard'; // 권한이 없으면 대시보드로 이동
 }
 
-/* 전역 상태 관리 변수 */
-let allProjects = []; // 서버에서 가져온 전체 프로젝트 목록 저장
-let currentTab = 'ACTIVE'; // 현재 활성화된 프로젝트 탭 (ACTIVE, ON_HOLD, FINISHED)
-let currentProjectId = null; // 상세 모달에서 보고 있는 현재 프로젝트 ID
-let selectedEmployeeNo = null; // 상세 모달에서 선택된 팀원의 사번
-let detailModal = null; // 상세 관리 부트스트랩 모달 인스턴스
-let createProjectModal = null; // 프로젝트 생성 부트스트랩 모달 인스턴스
-let memberScheduleModal = null; // 팀원 일정 확인 부트스트랩 모달 인스턴스
-let eventDetailModal = null;    // 일정 상세 확인용 부트스트랩 모달 인스턴스
+/* 프로젝트 화면 전역 상태 */
+let allProjects = []; // 서버에서 조회한 전체 프로젝트 목록
+let currentTab = 'ACTIVE'; // 현재 선택된 프로젝트 탭
+let currentProjectId = null; // 상세 모달에서 관리 중인 프로젝트 ID
+let selectedEmployeeNo = null; // 상세 모달에서 선택된 팀원 사번
+let detailModal = null; // 상세 관리 모달 인스턴스
+let createProjectModal = null; // 프로젝트 생성 모달 인스턴스
+let memberScheduleModal = null; // 팀원 일정 확인 모달 인스턴스
+let eventDetailModal = null;    // 일정 상세 확인 모달 인스턴스
 
-// 프로젝트 전체 일정 모달 및 달력 변수
+// 프로젝트 전체 일정 모달과 달력 상태
 let projectScheduleModal = null;
 let projectFullCalendar = null;
 
-let memberCalendar = null; // 팀원 FullCalendar 인스턴스
-let currentMemberTasks = []; // 선택된 팀원에게 할당된 업무 목록
-let currentTaskTab = 'ALL'; // 상세 모달 내 업무 필터 탭 (ALL, TODO, IN_PROGRESS, DONE)
+let memberCalendar = null; // 팀원 일정 FullCalendar 인스턴스
+let currentMemberTasks = []; // 선택 팀원 업무 목록
+let currentTaskTab = 'ALL'; // 상세 모달 업무 필터 탭
 
-/* 페이지 로드 완료 시 초기화 (Event Listeners & Constraints) */
+/* 프로젝트 화면 초기화 처리 */
 document.addEventListener('DOMContentLoaded', () => {
-    fetchDashboardData(); // 프로젝트 목록 불러오기
-    filterEmployees(); // 초기 직원 목록(초대용) 로드
+    fetchDashboardData(); // 프로젝트 목록 조회
+    filterEmployees(); // 초대용 직원 목록 초기 조회
 
-    // 부트스트랩 모달 객체 초기화
+    // Bootstrap 모달 객체 초기화
     detailModal = new bootstrap.Modal(document.getElementById('projectDetailModal'));
     createProjectModal = new bootstrap.Modal(document.getElementById('createProjectModal'));
     memberScheduleModal = new bootstrap.Modal(document.getElementById('memberScheduleModal'));
 
-    // 신규 일정 상세 모달 인스턴스 바인딩
+    // 일정 상세 모달 인스턴스 연결
     const eventDetailModalEl = document.getElementById('calendarEventDetailModal');
     if (eventDetailModalEl) {
         eventDetailModal = new bootstrap.Modal(eventDetailModalEl);
     }
 
-    // 프로젝트 전체 일정 모달 바인딩
+    // 프로젝트 전체 일정 모달 인스턴스 연결
     const projectScheduleModalEl = document.getElementById('projectScheduleModal');
     if (projectScheduleModalEl) {
         projectScheduleModal = new bootstrap.Modal(projectScheduleModalEl);
@@ -65,18 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 
-    // 날짜 조건 - 시작일/마감일은 오늘 이전 날짜를 선택할 수 없도록 설정
+    // 시작일/마감일은 오늘 이전 날짜 선택 방지
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('newProjectStart').setAttribute('min', today);
     document.getElementById('newProjectEnd').setAttribute('min', today);
     document.getElementById('taskDueDateInput').setAttribute('min', today);
 
-    // 날짜 연동 - 프로젝트 시작일 변경 시 종료일의 최소 가능 날짜를 시작일로 동기화
+    // 프로젝트 시작일 변경 시 종료일 최소 날짜 동기화
     document.getElementById('newProjectStart').addEventListener('change', function() {
         document.getElementById('newProjectEnd').setAttribute('min', this.value);
     });
 
-    // 일정 모달이 완전히 열린 후 크기를 한번 더 강제 동기화 (안 깨지게 처리)
+    // 일정 모달이 열린 뒤 FullCalendar 크기 보정 처리
     document.getElementById('memberScheduleModal').addEventListener('shown.bs.modal', function () {
         setTimeout(() => {
             if (memberCalendar) {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 50);
     });
 
-    // 프로젝트 전체 모달 크기 동기화
+    // 프로젝트 전체 일정 모달이 열린 뒤 FullCalendar 크기 보정 처리
     document.getElementById('projectScheduleModal').addEventListener('shown.bs.modal', function () {
         setTimeout(() => {
             if (projectFullCalendar) {
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* 서버에서 프로젝트 전체 목록 조회 */
+/* 프로젝트 전체 목록 조회 처리 */
 async function fetchDashboardData() {
     const container = document.getElementById('projectContainer');
     try {
@@ -115,7 +115,7 @@ async function fetchDashboardData() {
     }
 }
 
-/* 진척도가 100%인 활성 프로젝트를 감지하여 자동으로 DONE(완료) 상태로 변경하는 함수 */
+/* 진척도 100% 활성 프로젝트 자동 완료 처리 */
 async function checkAndAutoCloseProjects() {
     const targetProjects = allProjects.filter(p => {
         const statusUpper = p.status ? p.status.trim().toUpperCase() : 'READY';
@@ -149,7 +149,7 @@ async function checkAndAutoCloseProjects() {
     return true;
 }
 
-/* 상단 탭(진행 중, 보류, 완료) 옆의 프로젝트 개수 배지 업데이트 */
+/* 프로젝트 상태 탭 개수 배지 갱신 처리 */
 function updateTabCounts() {
     const counts = {
         active: allProjects.filter(p => p.status && ['READY', 'IN_PROGRESS', 'DELAYED'].includes(p.status.trim().toUpperCase())).length,
@@ -166,7 +166,7 @@ function updateTabCounts() {
     if (finishedEl) finishedEl.innerText = counts.finished;
 }
 
-/* 선택한 탭 상태에 따라 프로젝트 필터링 및 UI 활성화 */
+/* 프로젝트 상태 탭 필터링 처리 */
 function filterByTab(tabType) {
     currentTab = tabType;
 
@@ -192,7 +192,7 @@ function filterByTab(tabType) {
     renderProjectCards(filtered);
 }
 
-/* 프로젝트 카드 HTML 동적 생성 */
+/* 프로젝트 카드 렌더링 처리 */
 function renderProjectCards(projects) {
     const container = document.getElementById('projectContainer');
     if (!container) return;
@@ -254,6 +254,7 @@ function renderProjectCards(projects) {
     }
 }
 
+/* 프로젝트 상태 배지 클래스 변환 처리 */
 function getStatusBadgeClass(status) {
     switch(status) {
         case 'IN_PROGRESS': return 'bg-primary-subtle text-primary';
@@ -264,7 +265,7 @@ function getStatusBadgeClass(status) {
     }
 }
 
-/* 부서별 관리자 후보 직원 필터링 (생성 모달용) */
+/* 부서별 관리자 후보 조회 처리 */
 async function filterManagerEmployees() {
     const dept = document.getElementById('newProjectDeptFilter').value;
     const select = document.getElementById('newProjectManagerSelect');
@@ -282,13 +283,14 @@ async function filterManagerEmployees() {
     }
 }
 
+/* 프로젝트 생성 모달 표시 처리 */
 function openCreateProjectModal() {
     document.getElementById('newProjectDeptFilter').value = '';
     filterManagerEmployees();
     createProjectModal.show();
 }
 
-/* 새 프로젝트 생성 요청 실행 */
+/* 새 프로젝트 생성 요청 처리 */
 async function createProject() {
     const name = document.getElementById('newProjectName').value;
     const startsOn = document.getElementById('newProjectStart').value;
@@ -329,7 +331,7 @@ async function createProject() {
     }
 }
 
-/* 프로젝트 취소(논리 삭제) */
+/* 프로젝트 취소 요청 처리 */
 async function deleteProject(projectId) {
     if (!confirm("프로젝트를 취소하시겠습니까? 취소된 프로젝트는 대시보드에서 보이지 않게 됩니다.")) return;
     try {
@@ -341,7 +343,7 @@ async function deleteProject(projectId) {
     }
 }
 
-/* 특정 부서 직원 목록 필터링 (팀원 초대용) */
+/* 팀원 초대용 직원 목록 필터링 처리 */
 async function filterEmployees() {
     const dept = document.getElementById('deptFilter').value;
     const select = document.getElementById('employeeSelect');
@@ -357,7 +359,7 @@ async function filterEmployees() {
     }
 }
 
-/* 상세 관리 모달 열기 및 초기 데이터 세팅 */
+/* 프로젝트 상세 관리 모달 초기화 처리 */
 async function openProjectDetail(id, name, currentStatus) {
     currentProjectId = id;
     selectedEmployeeNo = null;
@@ -393,7 +395,7 @@ async function openProjectDetail(id, name, currentStatus) {
     detailModal.show();
 }
 
-/* 프로젝트 전체 진행 상태 변경 (Patch) */
+/* 프로젝트 진행 상태 변경 요청 처리 */
 async function updateProjectStatus() {
     const newStatus = document.getElementById('modalProjectStatus').value;
 
@@ -436,7 +438,7 @@ async function updateProjectStatus() {
     }
 }
 
-/* 프로젝트 참여 중인 멤버 목록 조회 */
+/* 프로젝트 참여 멤버 목록 조회 처리 */
 async function fetchMemberList() {
     const container = document.getElementById('memberListContainer');
     const countBadge = document.getElementById('memberCount');
@@ -472,7 +474,7 @@ async function fetchMemberList() {
     }
 }
 
-/* 팀원 클릭 시 업무 현황 탭 활성화 */
+/* 팀원 선택 및 업무 영역 표시 처리 */
 async function selectMember(empNo, empName) {
     selectedEmployeeNo = empNo;
 
@@ -487,7 +489,7 @@ async function selectMember(empNo, empName) {
     fetchMemberTasks();
 }
 
-/* 특정 멤버의 업무 리스트 조회 및 갱신 */
+/* 선택 팀원 업무 목록 조회 처리 */
 async function fetchMemberTasks() {
     const listContainer = document.getElementById('memberTaskList');
     listContainer.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
@@ -503,6 +505,7 @@ async function fetchMemberTasks() {
     }
 }
 
+/* 선택 팀원 업무 상태 필터링 처리 */
 function filterTasksByStatus(status) {
     currentTaskTab = status;
     const tabButtons = document.querySelectorAll('#taskStatusTabs .nav-link');
@@ -517,7 +520,7 @@ function filterTasksByStatus(status) {
     renderMemberTaskCards(filtered);
 }
 
-/* 업무 리스트 카드 렌더링 */
+/* 선택 팀원 업무 카드 렌더링 처리 */
 function renderMemberTaskCards(tasks) {
     const listContainer = document.getElementById('memberTaskList');
     listContainer.innerHTML = tasks.length ? '' : '<div class="text-center py-4 text-muted small">해당 상태의 업무가 없습니다.</div>';
@@ -561,7 +564,7 @@ function renderMemberTaskCards(tasks) {
     }
 }
 
-/* 업무 기한 인라인 수정 */
+/* 업무 기한 인라인 수정 UI 표시 처리 */
 function editTaskDate(taskId, currentDate, title, priority, description) {
     const container = document.getElementById(`date-container-${taskId}`);
     if (!container || container.querySelector('input')) return;
@@ -601,6 +604,7 @@ function editTaskDate(taskId, currentDate, title, priority, description) {
     setTimeout(() => input.focus(), 0);
 }
 
+/* 업무 기한 수정 요청 처리 */
 async function submitDateUpdate(taskId, newDate, oldDate, title, priority, description) {
     if (!newDate || newDate === oldDate) {
         fetchMemberTasks();
@@ -634,6 +638,7 @@ async function submitDateUpdate(taskId, newDate, oldDate, title, priority, descr
     }
 }
 
+/* 업무 삭제 요청 처리 */
 async function deleteTask(taskId) {
     if (!confirm("이 업무를 삭제하시겠습니까?")) return;
     try {
@@ -645,7 +650,7 @@ async function deleteTask(taskId) {
     }
 }
 
-/* 선택된 팀원에게 업무 할당 */
+/* 선택 팀원 업무 할당 요청 처리 */
 async function assignTask() {
     const title = document.getElementById('taskTitleInput').value;
     const description = document.getElementById('taskDescInput').value;
@@ -702,7 +707,7 @@ async function assignTask() {
     }
 }
 
-/* 팀원 초대 */
+/* 프로젝트 팀원 초대 요청 처리 */
 async function addProjectMember() {
     const empNo = document.getElementById('employeeSelect').value;
     if (!empNo) return alert("직원을 선택하세요.");
@@ -717,7 +722,7 @@ async function addProjectMember() {
     }
 }
 
-/* 팀원 제외 및 업무 검증 */
+/* 프로젝트 팀원 제외 및 미완료 업무 검증 처리 */
 async function removeProjectMember(en) {
     try {
         const taskResponse = await axios.get(`/api/projects/tasks/${currentProjectId}`);
@@ -754,11 +759,9 @@ async function removeProjectMember(en) {
     }
 }
 
-// ==========================================
-// 팀원 개인 일정 모달 및 FullCalendar 로직
-// ==========================================
+// 팀원 개인 일정 모달 및 FullCalendar 처리
 
-/* 팀원의 '일정 확인' 버튼 클릭 시 호출 */
+/* 팀원 일정 확인 모달 표시 처리 */
 async function openMemberScheduleModal() {
     const currentMemberName = document.getElementById('selectedMemberName').innerText;
     if (!selectedEmployeeNo || !currentMemberName) {
@@ -878,11 +881,9 @@ async function openMemberScheduleModal() {
 }
 
 
-// ==========================================
-// 프로젝트 전체 일정 모달 로직
-// ==========================================
+// 프로젝트 전체 일정 모달 및 FullCalendar 처리
 
-/* 프로젝트 전체 타임라인 '전체 일정 보기' 버튼 클릭 시 호출 */
+/* 프로젝트 전체 일정 모달 표시 처리 */
 async function openProjectAllSchedule() {
     if (!currentProjectId) {
         return alert("현재 선택된 프로젝트 정보가 없습니다.");
@@ -891,7 +892,7 @@ async function openProjectAllSchedule() {
     const projectName = document.getElementById('modalProjectName').innerText;
     document.getElementById('projectScheduleModalTitle').innerHTML = `<i data-lucide="calendar-days" class="me-2"></i> [${projectName}] 전체 업무 및 일정 타임라인`;
 
-    // 스피너 로딩 화면 세팅
+    // 스피너 로딩 화면 설정
     const calendarEl = document.getElementById('projectCalendar');
     calendarEl.innerHTML = `
         <div class="d-flex flex-column align-items-center justify-content-center py-5" style="min-height: 500px;">
@@ -900,15 +901,15 @@ async function openProjectAllSchedule() {
         </div>
     `;
 
-    // 모달 먼저 띄우기
+    // 모달 먼저 표시
     if (projectScheduleModal) {
         projectScheduleModal.show();
     }
 
-    // 모달이 완전히 펼쳐지고 나서 캘린더를 그려야 크기가 안 깨집니다.
+    // 모달이 완전히 열린 뒤 캘린더 렌더링
     setTimeout(async () => {
         try {
-            calendarEl.innerHTML = ''; // 스피너 지우기
+            calendarEl.innerHTML = ''; // 스피너 제거
 
             projectFullCalendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -918,15 +919,15 @@ async function openProjectAllSchedule() {
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
-                height: 600, // 창이 크므로 달력도 시원하게 크게 설정
+                height: 600, // 전체 일정 모달용 높이
                 navLinks: true,
                 editable: false,
                 selectable: false,
                 events: async function(info, successCallback, failureCallback) {
                     try {
-                        const loginEmpNo = localStorage.getItem('employeeNo'); // 현재 로그인한 사람의 사번
+                        const loginEmpNo = localStorage.getItem('employeeNo'); // 현재 로그인 사번
 
-                        // 1단계에서 만든 백엔드 API 호출!
+                        // 프로젝트 전체 일정 조회 요청
                         const response = await axios.get('/api/calendar/project-events', {
                             params: {
                                 projectId: currentProjectId,
@@ -941,14 +942,14 @@ async function openProjectAllSchedule() {
                             return;
                         }
 
-                        // 받은 데이터를 달력에 넣기 좋게 매핑
+                        // 서버 응답을 FullCalendar 이벤트 형식으로 변환
                         const events = response.data.map(evt => ({
                             id: evt.id,
                             title: evt.title || '제목 없음',
                             start: evt.startAt || evt.start || evt.startsAt,
                             end: evt.endAt || evt.end || evt.endsAt,
                             description: evt.description,
-                            color: evt.color || '#0ca5e9', // 기본 파란색
+                            color: evt.color || '#0ca5e9', // 기본 색상
                             allDay: evt.allDay ?? true
                         }));
 
@@ -961,7 +962,7 @@ async function openProjectAllSchedule() {
                 eventClick: function(info) {
                     const eventObj = info.event;
 
-                    // 달력 안의 일정(조각)을 클릭했을 때 보여줄 상세 팝업 설정
+                    // 캘린더 일정 클릭 시 상세 모달 내용 설정
                     document.getElementById('eventDetailTitle').innerText = eventObj.title;
 
                     const desc = eventObj.extendedProps.description;
@@ -982,14 +983,14 @@ async function openProjectAllSchedule() {
                     }
                     document.getElementById('eventDetailDate').innerText = dateText;
 
-                    // 배지(라벨) 색상 다르게 해주기
+                    // 일정 유형별 배지 색상 설정
                     const badgeEl = document.getElementById('eventDetailBadge');
                     if (eventObj.id && eventObj.id.startsWith('CAL_')) {
                         badgeEl.innerText = '공유 일정';
-                        badgeEl.style.backgroundColor = '#10b981'; // 초록색
+                        badgeEl.style.backgroundColor = '#10b981'; // 공유 일정 색상
                     } else {
                         badgeEl.innerText = '팀원 업무';
-                        badgeEl.style.backgroundColor = eventObj.backgroundColor || '#0ca5e9'; // 파란색 등
+                        badgeEl.style.backgroundColor = eventObj.backgroundColor || '#0ca5e9'; // 팀원 업무 색상
                     }
 
                     if (eventDetailModal) {
@@ -1012,5 +1013,5 @@ async function openProjectAllSchedule() {
             console.error("캘린더 생성 중 예외 발생:", err);
             calendarEl.innerHTML = '<div class="text-center py-5 text-danger">캘린더를 로드하는 중 오류가 발생했습니다.</div>';
         }
-    }, 300); // 300ms 대기 후 그리기
+    }, 300); // 모달 표시 후 캘린더 렌더링 대기
 }

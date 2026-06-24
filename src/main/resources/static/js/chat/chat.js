@@ -1,11 +1,12 @@
-/* 채팅 서버 접속 정보를 현재 브라우저 주소 기준으로 설정한다. */
+/* 채팅 서버 접속 정보 설정 */
 const serverIP = window.location.hostname;
 const serverPort = "8080";
 
-/* STOMP 웹소켓 클라이언트를 생성한다. */
+/* STOMP 웹소켓 클라이언트 설정 */
 const stompClient = new StompJs.Client({
     brokerURL: `ws://${serverIP}:${serverPort}/stomp/chat`,
 
+    // Spring Security 적용 시 웹소켓 Handshake 인증 누락 방지를 위한 JWT 헤더 처리
     connectHeaders: {
         "Authorization": "Bearer " + (localStorage.getItem("accessToken") || "")
     },
@@ -13,13 +14,13 @@ const stompClient = new StompJs.Client({
     reconnectDelay: 5000,
 });
 
-/* 채팅 화면에서 공유하는 상태 값을 선언한다. */
-let currentOffset = 30;
-let isLoading = false;
-let isFull = false;
-let draftTimer;
-let summaryMode = false;
-let summaryRangeAnchorId = null;
+/* 채팅 화면 전역 상태 */
+let currentOffset = 30; // 이전 메시지 추가 조회 시작 위치
+let isLoading = false; // 이전 메시지 조회 중복 방지 상태
+let isFull = false; // 더 조회할 메시지가 없는 상태
+let draftTimer; // 입력 중 임시저장 지연 처리 타이머
+let summaryMode = false; // AI 요약 메시지 선택 모드 상태
+let summaryRangeAnchorId = null; // 요약 범위 선택 기준 메시지 ID
 
 const messageInput = document.getElementById('messageInput');
 const aiHighlightLayer = document.getElementById('aiHighlightLayer');
@@ -29,7 +30,7 @@ const summaryModeBtn = document.getElementById('summaryModeBtn');
 const summarySubmitBtn = document.getElementById('summarySubmitBtn');
 const summaryCancelBtn = document.getElementById('summaryCancelBtn');
 
-/* 직원 목록을 조회해 사이드바에 렌더링한다. */
+/* 직원 목록 사이드바 렌더링 처리 */
 async function loadUserList() {
     const userList = document.getElementById('userList');
     if (!userList) return;
@@ -43,14 +44,14 @@ async function loadUserList() {
         userList.innerHTML = '';
 
         users.forEach(user => {
-            // 본인 계정은 대화 상대 목록에서 제외한다.
+            // 본인 계정은 대화 상대 목록에서 제외
             if (user.employeeNo === window.currentUserNo) return;
 
             const userItem = document.createElement('div');
             userItem.className = 'user-item';
             userItem.setAttribute('data-employee-no', user.employeeNo);
 
-            // 직원 항목 클릭 시 1:1 채팅방으로 이동하도록 이벤트를 연결한다.
+            // 직원 항목 클릭 시 1:1 채팅방 이동 이벤트 연결
             userItem.onclick = (e) => handleUserClick(userItem, e);
 
             userItem.innerHTML = `
@@ -74,7 +75,7 @@ async function loadUserList() {
     }
 }
 
-/* 직원 항목 클릭 시 1:1 채팅방을 생성하거나 기존 방으로 이동한다. */
+/* 1:1 채팅방 생성 또는 이동 처리 */
 function handleUserClick(element, event) {
     if (event) event.stopPropagation();
 
@@ -82,7 +83,7 @@ function handleUserClick(element, event) {
 
     console.log("선택된 직원 사번:", employeeNo);
 
-    // 1:1 채팅방 생성 또는 기존 방 조회 API를 호출한다.
+    // 1:1 채팅방 생성 또는 기존 방 조회 요청
     fetch('/api/chat/room/group', {
         method: 'POST',
         headers: {
@@ -97,13 +98,13 @@ function handleUserClick(element, event) {
         .then(res => res.json())
         .then(data => {
             if (data.roomId) {
-                // 응답받은 채팅방 번호로 채팅 화면을 이동한다.
+                // 응답받은 채팅방 번호로 채팅 화면 이동
                 window.location.href = `/api/chat/room?roomId=${data.roomId}&targetNo=${employeeNo}`;
             }
         });
 }
 
-/* 메시지 데이터를 채팅 말풍선 엘리먼트로 변환한다. */
+/* 메시지 말풍선 엘리먼트 생성 처리 */
 function createMessageElement(msg, isMine) {
     const messageDiv = document.createElement('div');
     const isAiGenerated = Boolean(msg.aiGenerated || msg.isAiGenerated);
@@ -121,7 +122,7 @@ function createMessageElement(msg, isMine) {
         hour: '2-digit', minute: '2-digit', hour12: true
     });
 
-    // 읽지 않은 인원 수는 0보다 클 때만 표시한다.
+    // 읽지 않은 인원 수는 0보다 클 때만 표시
     const isAiCalled = Boolean(msg.aiCalled || msg.isAiCalled);
     const isAiMessage = isAiCalled || isAiGenerated;
     const unreadCount = isAiMessage ? 0 : ((msg.unreadCount !== undefined) ? msg.unreadCount : 0);
@@ -145,6 +146,7 @@ function createMessageElement(msg, isMine) {
     return messageDiv;
 }
 
+/* HTML 특수 문자 이스케이프 처리 */
 function escapeHtml(value) {
     return String(value)
         .replace(/&/g, '&amp;')
@@ -154,14 +156,14 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
-/* @AI 멘션에 하이라이트 마크업을 적용한다. */
+/* @AI 멘션 하이라이트 마크업 처리 */
 function renderAiMentionHighlight(value) {
     return escapeHtml(value || '')
         .replace(/(^|\s)(@AI)/g, '$1<mark>$2</mark>')
         .replace(/\n$/g, '\n\u200b');
 }
 
-/* 입력창의 @AI 하이라이트 레이어를 입력값과 동기화한다. */
+/* 입력창 @AI 하이라이트 레이어 동기화 처리 */
 function syncAiMentionHighlight() {
     if (!messageInput || !aiHighlightLayer) return;
 
@@ -171,7 +173,7 @@ function syncAiMentionHighlight() {
     aiHighlightLayer.scrollLeft = messageInput.scrollLeft;
 }
 
-/* 메시지 날짜 구분에 사용할 날짜 키를 만든다. */
+/* 메시지 날짜 구분 키 생성 처리 */
 function getDateKey(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -179,7 +181,7 @@ function getDateKey(date) {
     return `${year}-${month}-${day}`;
 }
 
-/* 날짜 키를 한국어 날짜 구분선 문구로 변환한다. */
+/* 날짜 구분선 문구 변환 처리 */
 function formatDateDivider(dateKey) {
     const [year, month, day] = dateKey.split('-').map(Number);
     const date = new Date(year, month - 1, day);
@@ -191,7 +193,7 @@ function formatDateDivider(dateKey) {
     });
 }
 
-/* 메시지 목록의 날짜 구분선을 다시 계산해 표시한다. */
+/* 메시지 목록 날짜 구분선 갱신 처리 */
 function refreshDateDividers() {
     if (!chatMessages) return;
 
@@ -210,7 +212,7 @@ function refreshDateDividers() {
     });
 }
 
-/* 요약 모드에서 메시지 선택 체크박스를 추가한다. */
+/* 요약 모드 메시지 선택 체크박스 추가 처리 */
 function addSummaryCheckbox(messageEl) {
     if (!messageEl || messageEl.querySelector('.summary-check')) return;
 
@@ -227,7 +229,7 @@ function addSummaryCheckbox(messageEl) {
     messageEl.prepend(checkbox);
 }
 
-/* 요약 모드 체크박스를 모두 제거한다. */
+/* 요약 모드 체크박스 제거 처리 */
 function removeSummaryCheckboxes() {
     document.querySelectorAll('.summary-check').forEach(checkbox => checkbox.remove());
     document.querySelectorAll('.message.summary-selectable').forEach(messageEl => {
@@ -236,7 +238,7 @@ function removeSummaryCheckboxes() {
     summaryRangeAnchorId = null;
 }
 
-/* 요약 체크박스 선택 상태 변경을 처리한다. */
+/* 요약 체크박스 선택 상태 변경 처리 */
 function handleSummaryCheckboxChange(event) {
     const checkbox = event.target;
     if (!checkbox.checked) {
@@ -253,7 +255,7 @@ function handleSummaryCheckboxChange(event) {
     selectSummaryRange(summaryRangeAnchorId, currentId);
 }
 
-/* 두 메시지 사이의 요약 대상 범위를 선택한다. */
+/* 요약 대상 메시지 범위 선택 처리 */
 function selectSummaryRange(startId, endId) {
     const checkboxes = Array.from(document.querySelectorAll('.message .summary-check'));
     const startIndex = checkboxes.findIndex(checkbox => checkbox.value === String(startId));
@@ -269,7 +271,7 @@ function selectSummaryRange(startId, endId) {
     });
 }
 
-/* 요약 모드를 켜거나 끄고 관련 버튼 상태를 갱신한다. */
+/* 요약 모드 전환 및 버튼 상태 갱신 처리 */
 function setSummaryMode(enabled) {
     summaryMode = enabled;
 
@@ -286,7 +288,7 @@ function setSummaryMode(enabled) {
     removeSummaryCheckboxes();
 }
 
-/* 선택한 메시지들을 서버에 보내 AI 요약을 요청한다. */
+/* 선택 메시지 AI 요약 요청 처리 */
 async function submitSummary() {
     const selectedIds = Array.from(document.querySelectorAll('.summary-check:checked'))
         .map(checkbox => Number(checkbox.value))
@@ -331,11 +333,11 @@ async function submitSummary() {
     }
 }
 
-/* 새 메시지를 채팅 화면에 추가한다. */
+/* 새 메시지 화면 추가 처리 */
 function appendMessageToUI(msg, isMine) {
     const noMsgNotice = document.getElementById('noMessageNotice');
 
-    // 메시지가 하나라도 추가되면 빈 대화 안내 문구를 제거한다.
+    // 메시지가 추가되면 빈 대화 안내 문구 제거
     if (noMsgNotice) noMsgNotice.remove();
 
     if (!chatMessages) return;
@@ -347,15 +349,15 @@ function appendMessageToUI(msg, isMine) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-/* 현재 사용자가 채팅방 메시지를 읽었음을 서버에 알린다. */
+/* 현재 사용자 메시지 읽음 전송 처리 */
 function sendReadReceipt() {
-    // 방 번호가 없으면 읽음 이벤트를 보내지 않는다.
+    // 방 번호가 없으면 읽음 이벤트 전송 중단
     if (!currentRoomId) return;
 
-    // 사이드바가 대화창을 가린 상태라면 읽음 처리하지 않는다.
+    // 사이드바가 대화창을 가린 상태면 읽음 처리 제외
     const sidebar = document.getElementById('userSidebar');
     if (sidebar && sidebar.classList.contains('active') && window.innerWidth < 600) {
-        // 좁은 화면에서는 목록이 열려 있을 때 메시지를 읽지 않은 것으로 본다.
+        // 좁은 화면에서는 목록이 열려 있을 때 읽지 않은 상태로 유지
         return;
     }
 
@@ -365,7 +367,7 @@ function sendReadReceipt() {
     });
 }
 
-/* 채팅방 항목 클릭 시 해당 채팅방으로 이동한다. */
+/* 채팅방 항목 이동 처리 */
 function handleRoomClick(element, event) {
     if (event) event.stopPropagation();
 
@@ -379,11 +381,11 @@ function handleRoomClick(element, event) {
     window.location.href = `/api/chat/room?roomId=${roomId}`;
 }
 
-/* 입력창의 메시지를 현재 채팅방으로 전송한다. */
+/* 현재 채팅방 메시지 전송 처리 */
 const sendMessage = () => {
     const content = messageInput.value.trim();
 
-    // 내용이나 방 번호가 없으면 전송을 중단한다.
+    // 내용이나 방 번호가 없으면 전송 중단
     if (!content || !currentRoomId) {
         console.error("방 번호가 없습니다. 전송을 중단합니다.");
         return;
@@ -406,7 +408,7 @@ const sendMessage = () => {
         messageInput.focus();
     }
 
-    // 전송 후 Redis 임시저장 내용을 비운다.
+    // 전송 후 Redis 임시저장 내용 초기화
     fetch(`/api/chat/draft?roomId=${currentRoomId}`, {
         method: 'POST',
         headers: {
@@ -420,18 +422,18 @@ const sendMessage = () => {
     messageInput.focus();
 }
 
-/* 브라우저 창이 다시 활성화되면 읽음 상태를 전송한다. */
+/* 브라우저 포커스 복귀 시 읽음 상태 전송 처리 */
 window.addEventListener('focus', () => {
     if (stompClient && stompClient.connected) {
         sendReadReceipt();
     }
 });
 
-/* 온라인 사용자 목록을 화면 상태 표시점에 반영한다. */
+/* 온라인 사용자 상태 표시 처리 */
 function updateAllUserStatus(onlineList) {
     console.log("현재 온라인 사번들:", onlineList);
 
-    // 모든 상태 표시점을 오프라인으로 초기화한다.
+    // 모든 상태 표시점 오프라인 초기화
     document.querySelectorAll('.status-indicator').forEach(dot => {
         dot.classList.remove('online');
         dot.classList.add('offline');
@@ -439,7 +441,7 @@ function updateAllUserStatus(onlineList) {
 
     if (!onlineList) return;
 
-    // 온라인 목록에 포함된 사번만 온라인으로 변경한다.
+    // 온라인 목록에 포함된 사번만 온라인 표시
     onlineList.forEach(empNo => {
         const userItem = document.querySelector(`.user-item[data-employee-no="${empNo}"]`);
 
@@ -453,7 +455,7 @@ function updateAllUserStatus(onlineList) {
     });
 }
 
-/* 직원 목록 탭과 채팅방 목록 탭을 전환한다. */
+/* 직원 목록/채팅방 목록 탭 전환 처리 */
 function switchChatTab(type) {
     const userList = document.getElementById('userList');
     const roomList = document.getElementById('roomList');
@@ -477,11 +479,11 @@ function switchChatTab(type) {
     }
 }
 
-/* 참여 중인 채팅방 목록을 서버에서 조회한다. */
+/* 참여 중인 채팅방 목록 조회 처리 */
 function loadChatRoomList() {
     const roomList = document.getElementById('roomList');
 
-    // 서버의 채팅방 목록 조회 API를 호출한다.
+    // 채팅방 목록 조회 요청
     fetch('/api/chat/rooms',
         {
             headers: {
@@ -493,12 +495,12 @@ function loadChatRoomList() {
             roomList.innerHTML = '';
 
             rooms.forEach(room => {
-                // 기존 사용자 항목 스타일을 활용해 채팅방 목록 항목을 만든다.
+                // 기존 사용자 항목 스타일을 활용해 채팅방 항목 생성
                 const roomItem = document.createElement('div');
                 roomItem.className = 'user-item';
                 roomItem.setAttribute('data-room-id', room.roomId);
 
-                // 클릭 시 해당 채팅방 번호로 이동한다.
+                // 클릭 시 해당 채팅방 번호로 이동
                 roomItem.onclick = () => {
                     handleRoomClick(roomItem);
                 };
@@ -539,7 +541,7 @@ function loadChatRoomList() {
         });
 }
 
-/* 선택한 직원들로 그룹 채팅방 생성을 요청한다. */
+/* 그룹 채팅방 생성 요청 처리 */
 function createGroupChat() {
     const roomNameInput = document.getElementById('groupRoomName');
     const roomName = roomNameInput.value.trim();
@@ -555,7 +557,7 @@ function createGroupChat() {
         return;
     }
 
-    // 선택된 직원 체크박스에서 사번 목록을 추출한다.
+    // 선택된 직원 체크박스에서 사번 목록 추출
     const employeeNos = Array.from(selectedNodes).map(node => node.value);
 
     fetch('/api/chat/room/group', {
@@ -572,23 +574,23 @@ function createGroupChat() {
     })
         .then(res => res.json())
         .then(data => {
-            // 생성된 채팅방 번호로 이동한다.
+            // 생성된 채팅방 번호로 이동
             if (data.roomId) {
                 location.href = `/api/chat/room?roomId=${data.roomId}`;
             }
         });
 }
 
-/* 이전 메시지를 추가로 조회해 목록 상단에 붙인다. */
+/* 이전 메시지 추가 조회 처리 */
 async function loadMoreMessages() {
     if (isLoading || isFull) return;
     isLoading = true;
 
-    // 메시지 추가 후 스크롤 위치를 유지하기 위해 현재 높이를 저장한다.
+    // 메시지 추가 후 스크롤 위치 유지를 위해 현재 높이 저장
     const previousHeight = chatMessages.scrollHeight;
 
     try {
-        // 현재 채팅방 번호와 오프셋으로 이전 메시지를 조회한다.
+        // 현재 채팅방 번호와 오프셋으로 이전 메시지 조회
         const response = await fetch(`/api/chat/messages?roomId=${currentRoomId}&offset=${currentOffset}`,
             {
                 method: 'GET',
@@ -604,7 +606,7 @@ async function loadMoreMessages() {
             return;
         }
 
-        // 오래된 메시지가 위에 오도록 조회 결과를 역순으로 추가한다.
+        // 오래된 메시지가 위에 오도록 조회 결과를 역순 추가
         messages.reverse().forEach(msg => {
             const isMine = msg.senderNo === currentUserNo;
             const messageDiv = createMessageElement(msg, isMine);
@@ -612,10 +614,10 @@ async function loadMoreMessages() {
         });
         refreshDateDividers();
 
-        // 다음 조회를 위해 오프셋을 증가시킨다.
+        // 다음 조회를 위한 오프셋 증가
         currentOffset += 30;
 
-        // 추가된 콘텐츠 높이만큼 스크롤 위치를 보정한다.
+        // 추가된 콘텐츠 높이만큼 스크롤 위치 보정
         chatMessages.scrollTop = chatMessages.scrollHeight - previousHeight;
 
     } catch (error) {
@@ -625,31 +627,31 @@ async function loadMoreMessages() {
     }
 }
 
-/* STOMP 연결이 완료되면 상태와 채팅 채널을 구독한다. */
+/* STOMP 연결 완료 후 실시간 채널 구독 처리 */
 stompClient.onConnect = (frame) => {
     console.log('Connected: ' + frame);
 
-    // 실시간 온라인 상태 채널을 구독한다.
+    // 실시간 온라인 상태 채널 구독
     stompClient.subscribe('/sub/status', (message) => {
         console.log("실시간 상태 수신:", message.body);
         const onlineEmployeeNos = JSON.parse(message.body);
         updateAllUserStatus(onlineEmployeeNos);
     });
 
-    // 현재 채팅방 번호가 있을 때만 메시지 채널을 구독한다.
+    // 현재 채팅방 번호가 있을 때만 메시지 채널 구독
     if (currentRoomId) {
         console.log(currentRoomId + "번 방");
 
         stompClient.subscribe(`/sub/chat/${currentRoomId}`, (message) => {
             const msg = JSON.parse(message.body);
 
-            // 내가 보낸 일반 메시지인지 확인한다.
+            // 내가 보낸 일반 메시지 여부 확인
             const isMine = msg.senderNo === window.currentUserNo;
 
-            // 메시지 방향을 결정해 화면에 추가한다.
+            // 메시지 방향을 결정해 화면 추가
             appendMessageToUI(msg, isMine);
 
-            // 다른 사람이 보낸 메시지면 읽음 신호를 전송한다.
+            // 다른 사람이 보낸 메시지면 읽음 신호 전송
             if (!isMine && document.visibilityState === 'visible') {
                 sendReadReceipt();
             }
@@ -660,15 +662,15 @@ stompClient.onConnect = (frame) => {
             const oldReadId = Number(data.oldReadId || 0);
             const lastReadId = Number(data.lastReadMessageId || 0);
 
-            // 화면의 모든 메시지를 순회하며 새로 읽힌 구간만 처리한다.
+            // 화면 메시지 중 새로 읽힌 구간만 처리
             document.querySelectorAll('.message').forEach(msgEl => {
                 const msgId = Number(msgEl.getAttribute('data-msg-id'));
                 const unreadMark = msgEl.querySelector('.unread-mark');
 
-                // 읽음 숫자가 표시 중이고 새 읽음 위치 안에 있는 메시지만 갱신한다.
+                // 읽음 숫자가 표시 중이고 새 읽음 위치 안에 있는 메시지만 갱신
                 if (msgId && unreadMark && !unreadMark.classList.contains('hidden')) {
                     if (msgId > oldReadId && msgId <= lastReadId) {
-                        // 그룹 채팅에서 한 명이 읽었으므로 읽지 않은 수를 1 줄인다.
+                        // 그룹 채팅에서 한 명이 읽었으므로 읽지 않은 수 1 감소
                         let currentCount = Number(unreadMark.innerText || 0);
                         if (!isNaN(currentCount) && currentCount > 0) {
                             const nextCount = currentCount - 1;
@@ -680,7 +682,7 @@ stompClient.onConnect = (frame) => {
             });
         });
 
-        // AI 질문과 답변은 요청자 전용 채널에서만 수신한다.
+        // AI 질문과 답변은 요청자 전용 채널에서만 수신
         stompClient.subscribe(`/sub/chat/${currentRoomId}/ai/${window.currentUserNo}`, (message) => {
             const msg = JSON.parse(message.body);
 
@@ -692,12 +694,12 @@ stompClient.onConnect = (frame) => {
     }
 }
 
-/* 웹소켓 연결 오류를 콘솔에 기록한다. */
+/* 웹소켓 연결 오류 기록 처리 */
 stompClient.onWebSocketError = (error) => {
     console.error('Error with websocket', error);
 }
 
-/* STOMP 브로커 오류를 콘솔에 기록한다. */
+/* STOMP 브로커 오류 기록 처리 */
 stompClient.onStompError = (frame) => {
     console.error('Broker reported error: ' +
         frame.headers['message']);
@@ -705,16 +707,16 @@ stompClient.onStompError = (frame) => {
         frame.body);
 }
 
-/* 문서 로딩 완료 후 채팅 화면 초기화 이벤트를 등록한다. */
+/* 채팅 화면 초기화 처리 */
 document.addEventListener('DOMContentLoaded', async () => {
     syncAiMentionHighlight();
 
-    // 처음 열릴 때 창 크기를 채팅 화면 기준으로 조정한다.
+    // 처음 열릴 때 채팅 화면 기준으로 창 크기 조정
     if (window.outerWidth !== 600) {
         window.resizeTo(600, 800);
     }
 
-    // 브라우저 저장소에서 인증 토큰과 사번을 읽어온다.
+    // 브라우저 저장소에서 인증 토큰과 사번 조회
     const token = localStorage.getItem("accessToken");
     const empNo = localStorage.getItem("employeeNo");
 
@@ -725,7 +727,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("인증 정보 동기화 완료");
 
     try {
-        // 내 직원 정보를 조회해 현재 사용자 사번을 확정한다.
+        // 내 직원 정보를 조회해 현재 사용자 사번 확정
         const myInfoRes = await fetch('/api/management/employees/me', {
             headers: {"Authorization": `Bearer ${token}`}
         });
@@ -733,15 +735,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.currentUserNo = myInfo.employeeNo;
         window.currentUserName = myInfo.name;
 
-        // 직원 목록을 로드한다.
+        // 직원 목록 로드
         await loadUserList();
 
-        // URL 파라미터에서 채팅방 번호와 대상 사번을 가져온다.
+        // URL 파라미터에서 채팅방 번호와 대상 사번 조회
         const urlParams = new URLSearchParams(window.location.search);
         const paramRoomId = urlParams.get('roomId');
         const paramTargetNo = urlParams.get('targetNo');
 
-        // URL 파라미터가 있으면 전역 채팅 상태에 반영한다.
+        // URL 파라미터가 있으면 전역 채팅 상태 반영
         if (paramRoomId) window.currentRoomId = paramRoomId;
         if (paramTargetNo) window.targetNo = paramTargetNo;
 
@@ -753,19 +755,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (initRes.ok) {
                 const data = await initRes.json();
 
-                // 서버가 확정한 방 번호와 멤버 수를 전역 상태에 반영한다.
+                // 서버가 확정한 방 번호와 멤버 수를 전역 상태 반영
                 window.currentRoomId = data.roomId;
                 window.roomMemberCount = data.roomMemberCount;
 
-                // 채팅방 이름 표시 영역을 갱신한다.
+                // 채팅방 이름 표시 영역 갱신
                 const opponentNameEl = document.getElementById('opponentName');
                 if (opponentNameEl) opponentNameEl.innerText = data.roomName || "알 수 없는 대화";
 
-                // 초기 채팅 내역을 화면에 렌더링한다.
+                // 초기 채팅 내역 렌더링
                 if (data.chatHistory && chatMessages) {
                     chatMessages.innerHTML = '';
                     if (data.chatHistory.length === 0) {
-                        // 메시지가 없으면 빈 대화 안내 문구를 표시한다.
+                        // 메시지가 없으면 빈 대화 안내 문구 표시
                         chatMessages.innerHTML = '<div id="noMessageNotice" style="text-align: center; color: #999; margin-top: 50px;">대화 내용이 없습니다</div>';
                     } else {
                         data.chatHistory.forEach(msg => {
@@ -785,7 +787,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // 방 번호와 사용자 정보가 확정된 뒤 STOMP 구독을 시작한다.
+        // 방 번호와 사용자 정보 확정 후 STOMP 구독 시작
         if (!stompClient.connected) {
             stompClient.activate();
         }
@@ -822,14 +824,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         summaryCancelBtn.addEventListener('click', () => setSummaryMode(false));
     }
 
-    // 전송 버튼 클릭 이벤트를 등록한다.
+    // 전송 버튼 클릭 이벤트 등록
     if (sendBtn) {
         sendBtn.addEventListener('click', () => {
             sendMessage();
         });
     }
 
-    // Enter 키로 메시지를 전송하고 Shift+Enter는 줄바꿈으로 유지한다.
+    // Enter 전송과 Shift+Enter 줄바꿈 처리
     if (messageInput) {
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -838,13 +840,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 입력값 변경 시 자동 임시저장을 예약한다.
+        // 입력값 변경 시 자동 임시저장 예약
         messageInput.addEventListener('input', () => {
             const el = messageInput;
 
             const value = el.value;
 
-            // @ai / @Ai / @aI → @AI 로 통일
+            // @ai 입력을 @AI로 통일
             const normalized = value.replace(/@ai/gi, '@AI');
 
             if (normalized !== value) {
@@ -852,7 +854,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 el.value = normalized;
 
-                // 커서 위치 보정 (최소 안정 버전)
+                // 커서 위치 보정 처리
                 requestAnimationFrame(() => {
                     el.setSelectionRange(cursor, cursor);
                 });
@@ -861,7 +863,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             syncAiMentionHighlight();
             clearTimeout(draftTimer);
 
-            // 1초 동안 추가 입력이 없으면 서버에 임시저장한다.
+            // 1초 동안 추가 입력이 없으면 서버 임시저장
             draftTimer = setTimeout(() => {
                 if (!currentRoomId) return;
 
@@ -880,17 +882,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         messageInput.addEventListener('scroll', syncAiMentionHighlight);
     }
 
-    // 상단 스크롤 도달 이벤트를 등록한다.
+    // 상단 스크롤 도달 이벤트 등록
     if (chatMessages) {
         chatMessages.addEventListener('scroll', () => {
-            // 맨 위에 도달했고 추가 조회가 가능하면 이전 메시지를 불러온다.
+            // 맨 위에 도달했고 추가 조회가 가능하면 이전 메시지 조회
             if (chatMessages.scrollTop === 0 && !isLoading && !isFull) {
                 loadMoreMessages();
             }
         });
     }
 
-    // 초기 화면은 가장 최근 메시지가 보이도록 아래로 이동한다.
+    // 초기 화면은 가장 최근 메시지가 보이도록 하단 이동
     setTimeout(() => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 100);
