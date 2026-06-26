@@ -15,13 +15,12 @@
 <div layout:fragment="content">
     <div class="wrap">
 
-        <!-- 메인 -->
+        <!-- 전체 게시판 목록 영역 -->
         <div class="main">
             <div class="hd">
                 <span class="hd-title">전체 게시판</span>
             </div>
-            <!-- [수정] <div style="flex:1"> 로 테이블 감싸기 — .main의 justify-content: space-between이 동작하려면
-                 테이블 영역과 .bot 영역이 각각 별도 블록이어야 함 -->
+            <!-- 테이블과 하단 영역을 분리해 .main의 space-between 레이아웃 유지 처리 -->
             <div style="flex: 1;">
                 <table>
                     <thead>
@@ -35,7 +34,7 @@
                     </thead>
                     <tbody>
                     <th:block th:each="dto : ${response.dtoList}">
-                        <!-- 공지 고정글: is_pinned=true인 게시글만 상단에 별도 렌더링 -->
+                        <!-- 고정 공지글 우선 렌더링 반복 -->
                         <tr th:if="${dto.pinned}" class="notice-row"
                             th:onclick="|location.href='@{/board/notice/{id}(id=${dto.id})}'|">
                             <td style="text-align:center">
@@ -44,8 +43,9 @@
                             <td>
                                 <div class="ti">
                                     <span class="tt" style="font-weight: 700;" th:text="${dto.title}"></span>
-                                    <span th:if="${dto.attachmentCount > 0}"><i data-lucide="paperclip" style="width:14px; height:14px; color:#999;"></i></span>
-                                    <!-- 댓글 수가 1개 이상일 때만 [n] 형태로 표시 -->
+                                    <span th:if="${dto.attachmentCount > 0}"><i data-lucide="paperclip"
+                                                                                style="width:14px; height:14px; color:#999;"></i></span>
+                                    <!-- 댓글 수가 있을 때만 [n] 표시 -->
                                     <span th:if="${dto.commentCount > 0}" class="tc"
                                           th:text="|[${dto.commentCount}]|"></span>
                                 </div>
@@ -57,15 +57,13 @@
                     </th:block>
 
                     <th:block th:each="dto : ${response.dtoList}">
-                        <!-- 일반글: is_pinned=false인 게시글 렌더링
-                             board_id=1(공지사항)이면 /notice/{id}, 그 외이면 /general/{id}로 이동 -->
+                        <!-- 일반 게시글 렌더링 및 게시판 유형별 상세 경로 분기 처리 -->
                         <tr th:if="${!dto.pinned}" class="general-row"
                             th:onclick="${dto.boardId == 1}
                         ? |location.href='@{/board/notice/{id}(id=${dto.id})}'|
                         : |location.href='@{/board/general/{id}(id=${dto.id})}'|">
                             <td style="text-align:center">
-                                <!-- [수정] board_id=1이면 lf(회색), 그 외이면 l-free(파란색) 배지 적용
-                                     boardName을 배지 텍스트로 동적 표시 -->
+                                <!-- boardId 기준 배지 색상과 게시판명 표시 처리 -->
                                 <span class="lbl"
                                       th:classappend="${dto.boardId == 1} ? 'lf' : 'l-free'"
                                       th:text="${dto.boardName}"></span>
@@ -73,8 +71,9 @@
                             <td>
                                 <div class="ti">
                                     <span class="tt" th:text="${dto.title}"></span>
-                                    <span th:if="${dto.attachmentCount > 0}"><i data-lucide="paperclip" style="width:14px; height:14px; color:#999;"></i></span>
-                                    <!-- 댓글 수가 1개 이상일 때만 [n] 형태로 표시 -->
+                                    <span th:if="${dto.attachmentCount > 0}"><i data-lucide="paperclip"
+                                                                                style="width:14px; height:14px; color:#999;"></i></span>
+                                    <!-- 댓글 수가 있을 때만 [n] 표시 -->
                                     <span th:if="${dto.commentCount > 0}" class="tc"
                                           th:text="|[${dto.commentCount}]|"></span>
                                 </div>
@@ -89,7 +88,7 @@
             </div>
 
             <div class="bot">
-                <!-- 페이지네이션: 자유게시판 기준으로만 페이징 -->
+                <!-- 전체 게시판 페이지 이동 영역 -->
                 <div class="pgr">
                     <a th:href="@{/board/list(page=${response.start - 1}, size=${response.size}, type=${param.type}, keyword=${param.keyword})}"
                        class="pg"
@@ -106,6 +105,7 @@
                        th:if="${response.next}">›</a>
                 </div>
 
+                <!-- 검색 조건 유지용 GET 검색 영역 -->
                 <form th:action="@{/board/list}" method="get">
                     <div class="sr">
                         <select name="type">

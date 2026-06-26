@@ -9,13 +9,14 @@
     <link rel="stylesheet" th:href="@{/css/auth/account-security-manage.css}">
 </th:block>
 
+<!-- 계정 보안 관리 본문 영역 -->
 <div layout:fragment="content" class="account-security-container">
-    <!-- 계정 보안 관리 화면의 제목 영역 -->
+    <!-- 페이지 제목 영역 -->
     <div>
         <h1 class="page-title">계정 보안 관리</h1>
     </div>
 
-    <!-- 계정 목록을 사번/이름으로 검색하고 잠긴 계정만 필터링하는 조회 도구 영역 -->
+    <!-- 검색 조건 및 잠금 계정 필터 영역 -->
     <div class="toolbar">
         <input id="keyword-input" class="search-input" type="text" placeholder="사번 또는 이름">
         <label class="filter-toggle">
@@ -28,10 +29,10 @@
         </button>
     </div>
 
-    <!-- 조회 결과나 오류 메시지를 사용자에게 안내하는 영역 -->
+    <!-- 조회 결과 및 오류 메시지 표시 영역 -->
     <div id="account-security-message" class="message-area"></div>
 
-    <!-- 현재 조회 조건과 페이지 기준으로 전체/잠김/정상 계정 수를 요약해서 보여줌 -->
+    <!-- 계정 보안 상태 요약 영역 -->
     <div class="summary-row">
         <div class="summary-item">
             <div class="summary-label">전체 조회 계정</div>
@@ -47,7 +48,7 @@
         </div>
     </div>
 
-    <!-- 계정별 로그인 실패 횟수와 잠금 상태를 표 형태로 보여주는 목록 영역 -->
+    <!-- 계정 보안 상태 목록 영역 -->
     <div class="table-panel">
         <div class="table-wrap">
             <table class="security-table">
@@ -72,7 +73,7 @@
             </table>
         </div>
 
-        <!-- 계정 보안 목록의 이전/다음 페이지 이동과 현재 페이지 정보를 표시하는 영역 -->
+        <!-- 계정 보안 목록 페이지 이동 영역 -->
         <div class="pagination-row">
             <button id="prev-page-button" type="button" class="btn-secondary" onclick="moveAccountSecurityPage(-1)">
                 이전

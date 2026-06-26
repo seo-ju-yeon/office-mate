@@ -7,10 +7,12 @@
 <th:block layout:fragment="head-extra">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/project/project.css}">
+    <!-- 프로젝트 일정 모달에서 FullCalendar 사용 -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 </th:block>
 
 <div layout:fragment="content">
+    <!-- 프로젝트 관리 제목 및 생성 버튼 영역 -->
     <div class="mb-4 d-flex justify-content-between align-items-center">
         <div>
             <h2 class="fw-bold text-dark">프로젝트 관리</h2>
@@ -21,6 +23,7 @@
         </button>
     </div>
 
+    <!-- JS가 상태별 프로젝트 목록을 필터링하고 건수 배지를 갱신하는 탭 영역 -->
     <ul class="nav nav-tabs mb-4" id="projectStatusTabs" role="tablist">
         <li class="nav-item">
             <button class="nav-link active fw-bold" onclick="filterByTab('ACTIVE')">
@@ -39,12 +42,14 @@
         </li>
     </ul>
 
+    <!-- 서버 조회 결과를 프로젝트 카드로 렌더링하는 영역 -->
     <div id="projectContainer" class="project-grid">
         <div class="text-center py-5">
             <div class="spinner-border text-primary"></div>
         </div>
     </div>
 
+    <!-- 새 프로젝트 생성 모달 영역 -->
     <div class="modal fade" id="createProjectModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -106,6 +111,7 @@
         </div>
     </div>
 
+    <!-- 프로젝트 상태, 팀원, 업무를 함께 관리하는 상세 모달 영역 -->
     <div class="modal fade" id="projectDetailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content modal-xl-custom">
@@ -132,6 +138,7 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="row h-100">
+                        <!-- 부서 필터로 직원을 조회하고 프로젝트 팀원으로 초대하는 영역 -->
                         <div class="col-md-5 border-end d-flex flex-column h-100">
                             <div class="filter-section">
                                 <label class="form-label small fw-bold text-primary">새 팀원 초대</label>
@@ -168,6 +175,7 @@
                             <div id="memberListContainer" class="bg-white"></div>
                         </div>
 
+                        <!-- 선택된 팀원의 업무 목록과 신규 업무 할당을 처리하는 영역 -->
                         <div class="col-md-7 d-flex flex-column h-100">
                             <div id="taskManagementSection" class="flex-column h-100" style="display: none;">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -253,6 +261,7 @@
         </div>
     </div>
 
+    <!-- 선택 팀원의 개인 일정과 업무 일정을 FullCalendar로 확인하는 모달 영역 -->
     <div class="modal fade" id="memberScheduleModal" tabindex="-1" style="z-index: 1060;">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -274,6 +283,7 @@
         </div>
     </div>
 
+    <!-- 프로젝트 구성원의 전체 일정과 업무 타임라인을 FullCalendar로 확인하는 모달 영역 -->
     <div class="modal fade" id="projectScheduleModal" tabindex="-1" style="z-index: 1060;">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -293,6 +303,7 @@
         </div>
     </div>
 
+    <!-- FullCalendar 일정 클릭 시 상세 정보를 표시하는 공통 모달 영역 -->
     <div class="modal fade" id="calendarEventDetailModal" tabindex="-1" style="z-index: 1070;">
         <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 400px;">
             <div class="modal-content shadow-lg border-0">

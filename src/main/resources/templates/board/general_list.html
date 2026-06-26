@@ -15,20 +15,18 @@
 <div layout:fragment="content">
     <div class="wrap">
 
-        <!-- 메인 -->
+        <!-- 자유게시판 목록 영역 -->
         <div class="main">
             <div class="hd">
                 <span class="hd-title">자유게시판</span>
                 <button class="wb" th:onclick="|location.href='@{/board/general/write}'|">+ 글쓰기</button>
             </div>
-            <!-- [수정] <div style="flex:1"> 로 테이블 감싸기
-                 .main의 justify-content: space-between이 동작하려면
-                 테이블 영역과 .bot 영역이 각각 별도 블록이어야 함 -->
+            <!-- 테이블과 하단 영역을 분리해 .main의 space-between 레이아웃 유지 처리 -->
             <div style="flex: 1;">
                 <table>
                     <thead>
                     <tr>
-                        <!-- [수정] 구분 열 너비 80px → 100px 로 변경 (배지 텍스트 "자유게시판" 잘림 방지) -->
+                        <!-- 자유게시판 배지 텍스트 잘림 방지를 위한 구분 열 너비 유지 -->
                         <th style="width:100px; text-align:center">구분</th>
                         <th>제목</th>
                         <th style="width:120px">작성자</th>
@@ -37,21 +35,21 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- 데이터 있을 때 -->
+                    <!-- 게시글 목록 렌더링 반복 -->
                     <th:block th:if="${not #lists.isEmpty(response.dtoList)}">
                         <tr th:each="dto : ${response.dtoList}"
                             onclick="location.href='#'"
                             th:onclick="|location.href='@{/board/general/{id}(id=${dto.id})}'|">
                             <td style="text-align:center">
                                 <span th:if="${dto.pinned}" class="lbl lp">공지</span>
-                                <!-- [수정] lf("일반") → l-free("자유게시판") 로 변경
-                                     배지 텍스트와 스타일을 자유게시판에 맞게 수정 -->
+                                <!-- 자유게시판 배지 텍스트와 스타일 표시 처리 -->
                                 <span th:unless="${dto.pinned}" class="lbl l-free">자유게시판</span>
                             </td>
                             <td>
                                 <div class="ti">
                                     <span class="tt" th:text="${dto.title}"></span>
-                                    <span th:if="${dto.attachmentCount > 0}" title="첨부파일 있음"><i data-lucide="paperclip" style="width:14px; height:14px; color:#999;"></i></span>
+                                    <span th:if="${dto.attachmentCount > 0}" title="첨부파일 있음"><i data-lucide="paperclip"
+                                                                                                style="width:14px; height:14px; color:#999;"></i></span>
                                     <span th:if="${dto.commentCount > 0}" class="tc"
                                           th:text="|[${dto.commentCount}]|"></span>
                                 </div>
@@ -61,7 +59,7 @@
                             <td class="nr" th:text="${dto.viewCount}"></td>
                         </tr>
                     </th:block>
-                    <!-- 데이터 없을 때 -->
+                    <!-- 게시글 없음 표시 영역 -->
                     <tr th:if="${#lists.isEmpty(response.dtoList)}">
                         <td colspan="5" class="empty">게시글이 없습니다.</td>
                     </tr>
@@ -71,7 +69,7 @@
 
 
             <div class="bot">
-                <!-- 페이지네이션 -->
+                <!-- 자유게시판 페이지 이동 영역 -->
                 <div class="pgr">
                     <a th:href="@{/board/general/list(page=${response.start - 1}, size=${response.size}, type=${param.type}, keyword=${param.keyword})}"
                        class="pg"
@@ -89,7 +87,7 @@
                        th:if="${response.next}">›</a>
                 </div>
 
-                <!-- 검색 -->
+                <!-- 검색 조건 유지용 GET 검색 영역 -->
                 <form th:action="@{/board/general/list}" method="get">
                     <div class="sr">
                         <select name="type">

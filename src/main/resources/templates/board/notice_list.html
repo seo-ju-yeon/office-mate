@@ -15,15 +15,13 @@
 <div layout:fragment="content">
     <div class="wrap">
 
-        <!-- 메인 -->
+        <!-- 공지사항 목록 영역 -->
         <div class="main">
             <div class="hd">
                 <span class="hd-title">공지사항</span>
                 <button class="wb" onclick="goToNoticeWrite()">+ 글쓰기</button>
             </div>
-            <!-- [수정] <div style="flex:1"> 로 테이블 감싸기
-                 .main의 justify-content: space-between이 동작하려면
-                 테이블 영역과 .bot 영역이 각각 별도 블록이어야 함 -->
+            <!-- 테이블과 하단 영역을 분리해 .main의 space-between 레이아웃 유지 처리 -->
             <div style="flex: 1;">
                 <table>
                     <thead>
@@ -36,7 +34,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- 데이터 있을 때 -->
+                    <!-- 공지사항 목록 렌더링 반복 -->
                     <th:block th:if="${not #lists.isEmpty(response.dtoList)}">
                         <tr th:each="dto : ${response.dtoList}"
                             onclick="location.href='#'"
@@ -47,9 +45,9 @@
                             <td>
                                 <div class="ti">
                                     <span class="tt" th:text="${dto.title}"></span>
-                                    <!-- 첨부파일 있을 때 클립 아이콘 표시 -->
+                                    <!-- 첨부파일이 있을 때 클립 아이콘 표시 -->
                                     <span th:if="${dto.attachmentCount > 0}" title="첨부파일 있음"><i data-lucide="paperclip" style="width:14px; height:14px; color:#999;"></i></span>
-                                    <!-- 댓글 수가 1개 이상일 때만 [n] 형태로 표시 -->
+                                    <!-- 댓글 수가 있을 때만 [n] 표시 -->
                                     <span th:if="${dto.commentCount > 0}" class="tc"
                                           th:text="|[${dto.commentCount}]|"></span>
                                 </div>
@@ -59,7 +57,7 @@
                             <td class="nr" th:text="${dto.viewCount}"></td>
                         </tr>
                     </th:block>
-                    <!-- 데이터 없을 때 -->
+                    <!-- 공지사항 없음 표시 영역 -->
                     <tr th:if="${#lists.isEmpty(response.dtoList)}">
                         <td colspan="5" class="empty">게시글이 없습니다.</td>
                     </tr>
@@ -68,7 +66,7 @@
             </div>
 
             <div class="bot">
-                <!-- 페이지네이션 -->
+                <!-- 공지사항 페이지 이동 영역 -->
                 <div class="pgr">
                     <a th:href="@{/board/notice/list(page=${response.start - 1}, size=${response.size}, type=${param.type}, keyword=${param.keyword})}"
                        class="pg"
@@ -86,7 +84,7 @@
                        th:if="${response.next}">›</a>
                 </div>
 
-                <!-- 검색 -->
+                <!-- 검색 조건 유지용 GET 검색 영역 -->
                 <form th:action="@{/board/notice/list}" method="get">
                     <div class="sr">
                         <select name="type">
@@ -102,7 +100,7 @@
         </div>
     </div>
 
-    <!-- 권한 없음 모달 -->
+    <!-- 공지 작성 권한 없음 안내 모달 영역 -->
     <div id="noAuthModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#fff; border-radius:12px; padding:32px 36px; text-align:center; min-width:280px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
             <div style="font-size:16px; font-weight:700; color:#1a1a1a; margin-bottom:8px;">접근 권한 없음</div>
@@ -118,7 +116,7 @@
 </body>
 <th:block layout:fragment="scripts">
     <script th:src="@{/js/board/notice_list.js}"></script>
-    <!-- 권한 없이 리다이렉트 됐을 때 모달 자동 표시 -->
+    <!-- 서버가 noAuth 값을 내려준 경우 권한 없음 모달 자동 표시 -->
     <script th:if="${noAuth}">
         document.getElementById('noAuthModal').style.display = 'flex';
     </script>

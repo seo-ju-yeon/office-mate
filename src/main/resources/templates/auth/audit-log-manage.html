@@ -10,13 +10,13 @@
 </th:block>
 
 <div layout:fragment="content" class="audit-log-container">
-    <!-- 감사 로그 화면의 제목과 CSV 내보내기 버튼 영역 -->
+    <!-- 페이지 제목 및 CSV 내보내기 영역 -->
     <div class="audit-page-header">
         <h1 class="audit-page-title">감사 로그 조회</h1>
         <button class="audit-button secondary" type="button" onclick="exportAuditCsv()">CSV 내보내기</button>
     </div>
 
-    <!-- 감사 로그 목록을 조건별로 조회하기 위한 필터 영역 -->
+    <!-- 감사 로그 조회 조건 필터 영역 -->
     <div class="audit-filter-card">
         <div class="audit-filter-group">
             <label for="auditStartDate">조회 시작일</label>
@@ -56,7 +56,7 @@
         <button class="audit-button" type="button" onclick="loadAuditLogs(0)">필터 적용</button>
     </div>
 
-    <!-- 감사 로그 조회 결과와 페이지네이션을 표시하는 테이블 영역 -->
+    <!-- 감사 로그 목록 및 페이지 이동 영역 -->
     <div class="audit-table-wrapper">
         <table class="audit-table">
             <thead>
@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    <!-- 감사 로그 행 클릭 시 요청/처리 상세 정보를 보여주는 모달 영역 -->
+    <!-- 감사 로그 상세 모달 영역 -->
     <div id="auditLogModal" class="audit-modal">
         <div class="audit-modal-content">
             <div class="audit-modal-header">

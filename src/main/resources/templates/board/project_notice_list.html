@@ -14,15 +14,16 @@
 <body>
 <div layout:fragment="content">
     <div class="wrap">
+        <!-- 프로젝트 공지사항 목록 영역 -->
         <div class="main">
             <div class="hd" style="flex-direction:column; align-items:flex-start; gap:12px;">
                 <div style="width:100%; display:flex; align-items:center; justify-content:space-between;">
                     <span class="hd-title">프로젝트 공지사항</span>
                     <button class="wb" onclick="goToProjectNoticeWrite()">+ 글쓰기</button>
                 </div>
-                <!-- 상태 탭 -->
+                <!-- 프로젝트 상태 탭 영역 -->
                 <div class="project-tabs" id="statusTabs" style="margin-bottom:8px;"></div>
-                <!-- 프로젝트 드롭다운 -->
+                <!-- 프로젝트 선택 드롭다운 영역 -->
                 <select id="projectDropdown"
                         onchange="onDropdownChange(this)"
                         style="width:260px; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:14px;">
@@ -30,6 +31,7 @@
                 </select>
             </div>
 
+            <!-- 프로젝트 공지 목록 테이블 영역 -->
             <div style="flex: 1;">
                 <table id="projectNoticeTable">
                     <thead>
@@ -50,6 +52,7 @@
             </div>
 
             <div class="bot">
+                <!-- 프로젝트 공지 페이지 이동 및 검색 영역 -->
                 <div class="pgr" id="pagination"></div>
                 <div class="sr">
                     <select id="searchType">
@@ -63,8 +66,9 @@
         </div>
     </div>
 
-    <!-- 권한 없음 모달 -->
-    <div id="noAuthModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; align-items:center; justify-content:center;">
+    <!-- 프로젝트 공지 작성 권한 없음 안내 모달 영역 -->
+    <div id="noAuthModal"
+         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#fff; border-radius:12px; padding:32px 36px; text-align:center; min-width:280px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
             <div style="font-size:16px; font-weight:700; color:#1a1a1a; margin-bottom:8px;">접근 권한 없음</div>
             <div style="font-size:14px; color:#888; margin-bottom:24px;">프로젝트 공지 작성은 관리자만 가능합니다.</div>

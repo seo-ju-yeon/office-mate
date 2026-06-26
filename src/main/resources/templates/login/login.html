@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OfficeMate - 로그인</title>
-    <!-- 외부 폰트와 아이콘 라이브러리 로드 -->
     <link rel="stylesheet" as="style" crossorigin
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -13,12 +12,12 @@
 </head>
 <body>
 
-<!-- 로그인 요청 중 표시되는 로딩 오버레이 -->
+<!-- 로그인 요청 로딩 오버레이 영역 -->
 <div id="loading-overlay">
     <div class="spinner"></div>
 </div>
 
-<!-- 로그인 입력과 복직 신청을 처리하는 화면 영역 -->
+<!-- 로그인 및 복직 신청 본문 영역 -->
 <div class="login-container">
     <!-- 서비스 로고 영역 -->
     <div class="logo">
@@ -26,26 +25,26 @@
         <span>OfficeMate</span>
     </div>
 
-    <!-- 로그인 실패 또는 복직 신청 실패 메시지 표시 영역 -->
+    <!-- 로그인/복직 신청 오류 메시지 영역 -->
     <div id="error-msg" class="error-area">
         <i data-lucide="alert-circle" class="message-icon"></i>
         <span id="error-text">사번 또는 비밀번호가 올바르지 않습니다.</span>
     </div>
 
-    <!-- 복직 신청 성공 메시지 표시 영역 -->
+    <!-- 복직 신청 성공 메시지 영역 -->
     <div id="success-msg" class="success-area">
         <i data-lucide="check-circle" class="message-icon"></i>
         <span id="success-text">요청이 완료되었습니다.</span>
     </div>
 
-    <!-- 사번과 비밀번호로 로그인을 요청하는 입력 폼 -->
+    <!-- 로그인 입력 폼 영역 -->
     <form id="loginForm">
         <div class="form-group">
             <label for="employeeId">사번</label>
             <div class="input-wrapper">
                 <input type="text" id="employeeId" name="username" placeholder="사번을 입력하세요" required>
             </div>
-            <!-- 사번 대문자 자동 전환 안내 문구 -->
+            <!-- 사번 대문자 자동 전환 안내 영역 -->
             <div class="input-hint">
                 <i data-lucide="info" class="hint-icon"></i>
                 <span>사번은 자동으로 대문자로 전환되어 입력됩니다.</span>
@@ -60,7 +59,7 @@
                     <i data-lucide="eye" id="toggleIcon"></i>
                 </button>
             </div>
-            <!-- 비밀번호 대소문자 구분 안내 문구 -->
+            <!-- 비밀번호 대소문자 구분 안내 영역 -->
             <div class="input-hint">
                 <i data-lucide="info" class="hint-icon"></i>
                 <span>비밀번호는 대소문자를 구분합니다.</span>
@@ -72,7 +71,7 @@
         </button>
     </form>
 
-    <!-- 휴직 계정 로그인 시 복직 신청 사유를 입력하는 영역 -->
+    <!-- 휴직 계정 복직 신청 영역 -->
     <section id="return-request-panel" class="return-request-panel">
         <p class="return-request-title">
             <i data-lucide="clipboard-check" class="message-icon"></i>
@@ -92,7 +91,7 @@
         </button>
     </section>
 
-    <!-- 비밀번호 찾기 화면으로 이동하는 링크 영역 -->
+    <!-- 비밀번호 찾기 이동 링크 영역 -->
     <div class="info-area">
         <p><a href="/password-find">비밀번호를 잊으셨나요?</a></p>
     </div>

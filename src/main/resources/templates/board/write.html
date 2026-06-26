@@ -7,7 +7,7 @@
 <head>
     <th:block layout:fragment="head-extra">
         <link rel="stylesheet" th:href="@{/css/board/write.css}">
-        <!-- Quill CSS -->
+        <!-- Quill 에디터 스타일 연결 -->
         <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     </th:block>
 </head>
@@ -15,6 +15,7 @@
 <body>
 <div layout:fragment="content">
     <div class="wrap">
+        <!-- 게시글 작성 폼 영역 -->
         <div class="main">
             <div class="hd">
                 <span class="hd-title"
@@ -28,20 +29,20 @@
                   id="writeForm"
                   enctype="multipart/form-data">
 
-                <!-- boardId hidden: 공지/자유게시판은 서버에서 고정값, 프로젝트 공지는 JS가 드롭다운 선택값으로 채움 -->
+                <!-- boardId 서버 전달 값: 일반/공지는 서버값, 프로젝트 공지는 JS 선택값 반영 -->
                 <input type="hidden" name="boardId" id="boardId" th:value="${boardId}">
 
-                <!-- 프로젝트 공지: 프로젝트 선택 드롭다운 -->
+                <!-- 프로젝트 공지 작성 시 프로젝트 선택 영역 -->
                 <div class="form-row" th:if="${boardType == 'projectNotice'}">
                     <label for="projectBoardSelect">프로젝트</label>
                     <select id="projectBoardSelect"
                             style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px;">
                         <option value="">프로젝트를 선택해주세요</option>
-                        <!-- JS loadProjectBoards()가 동적으로 채움 -->
+                        <!-- JS가 참여 프로젝트 게시판 목록을 동적으로 렌더링 -->
                     </select>
                 </div>
 
-                <!-- 공지/프로젝트 공지: 상단 고정 체크박스 -->
+                <!-- 공지사항 작성 시 상단 고정 여부 설정 영역 -->
                 <div class="form-row" th:if="${boardType == 'notice'}">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 0;">
                         <input type="checkbox" name="pinned" id="pinned" style="width: 18px; height: 18px;">
@@ -49,23 +50,22 @@
                     </label>
                 </div>
 
-                <!-- 제목 -->
+                <!-- 제목 입력 영역 -->
                 <div class="form-row">
                     <label for="title">제목</label>
                     <input type="text" id="title" name="title"
                            placeholder="제목을 입력해주세요" required maxlength="200">
                 </div>
 
-                <!-- 본문: textarea → Quill 에디터 + hidden input -->
+                <!-- Quill 본문 편집 영역 -->
                 <div class="form-row">
                     <label>내용</label>
-                    <!-- Quill 편집 영역 -->
                     <div id="quillEditor"></div>
-                    <!-- submit 직전 JS가 Quill HTML을 주입. name="content"으로 서버 전달 -->
+                    <!-- 제출 직전 JS가 Quill HTML을 주입해 서버에 전달 -->
                     <input type="hidden" id="content" name="content">
                 </div>
 
-                <!-- 첨부파일 -->
+                <!-- 첨부파일 선택 영역 -->
                 <div class="form-row">
                     <label>첨부파일</label>
                     <div class="file-area">
@@ -76,16 +76,16 @@
                             </button>
                             <span class="file-hint">여러 파일을 선택할 수 있습니다.</span>
                         </div>
-                        <!-- 실제 파일 input (숨김) -->
+                        <!-- 실제 파일 input은 숨기고 버튼으로 선택 처리 -->
                         <input type="file" id="fileInput" name="attachments"
                                multiple style="display:none"
                                onchange="handleFileSelect(this)">
-                        <!-- 선택된 파일 목록 -->
+                        <!-- 선택된 파일 목록 렌더링 영역 -->
                         <div class="file-list" id="fileList"></div>
                     </div>
                 </div>
 
-                <!-- 버튼 -->
+                <!-- 작성 취소 및 제출 버튼 영역 -->
                 <div class="btn-row">
                     <a th:href="${boardType == 'notice'} ? @{/board/notice/list} :
                                (${boardType == 'projectNotice'} ? @{/board/project/notice/list} : @{/board/general/list})"
@@ -100,11 +100,11 @@
 </body>
 
 <th:block layout:fragment="scripts">
-    <!-- 서버 변수 주입: boardType만 필요 -->
+    <!-- Thymeleaf가 게시판 유형 값을 JS 전역 변수로 주입 -->
     <script th:inline="javascript">
         const boardType = /*[[${boardType}]]*/ 'general';
     </script>
-    <!-- Quill JS (write.js보다 먼저 로드) -->
+    <!-- write.js에서 Quill을 사용하므로 먼저 로드 -->
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
     <script th:src="@{/js/board/write.js}"></script>
 </th:block>

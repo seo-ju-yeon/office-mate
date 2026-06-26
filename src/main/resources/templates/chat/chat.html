@@ -10,9 +10,11 @@
 </head>
 <body>
 <div class="chat-popup">
+    <!-- 채팅방 제목 및 AI 요약 버튼 영역 -->
     <div class="chat-header">
         <button id="toggleUserList" class="icon-btn">👥</button>
         <span class="room-name" id="opponentName">
+            <!-- 서버가 내려준 roomId와 targetName 기준으로 채팅방 이름 표시 -->
             <th:block th:if="${roomId != null}">
                 <span th:if="${targetName != null}" th:text="${targetName + '과의 대화'}"></span>
 
@@ -20,6 +22,7 @@
                       th:text="${(roomName != null ? roomName : '그룹 채팅') + (roomMemberCount > 2 ? ' [' + roomMemberCount + ']' : '')}"></span>
             </th:block>
 
+            <!-- 선택된 방이 없을 때 기본 안내 표시 -->
             <th:block th:if="${roomId == null}">
                 <span>대화 상대를 선택해 주세요</span>
             </th:block>
@@ -33,6 +36,7 @@
     </div>
 
     <div class="chat-main-area">
+        <!-- 직원/그룹 채팅방 사이드바 영역 -->
         <div class="user-sidebar" id="userSidebar">
             <div class="sidebar-header">
                 <div class="chat-tabs">
@@ -42,6 +46,7 @@
             </div>
 
             <div class="user-list" id="userList">
+                <!-- 서버가 내려준 직원 목록을 초기 렌더링하고 JS가 이후 갱신 -->
                 <th:block th:each="emp : ${employees}">
                     <div class="user-item" th:data-employee-no="${emp.employeeNo}">
                         <input type="checkbox" class="group-check" th:value="${emp.employeeNo}"
@@ -69,6 +74,7 @@
             </div>
 
             <div id="roomListArea">
+                <!-- 서버가 내려준 참여 채팅방 목록 초기 렌더링 -->
                 <th:block th:if="${not #lists.isEmpty(rooms)}">
                     <div th:each="room : ${rooms}"
                          class="room-item"
@@ -87,15 +93,18 @@
         </div>
 
         <div class="chat-content">
+            <!-- 채팅 메시지 목록 영역 -->
             <div class="chat-messages" id="chatMessages">
                 <div id="noMessageNotice" th:if="${#lists.isEmpty(chatHistory) and #lists.isEmpty(recentMessages)}"
                      style="text-align: center; color: #999; margin-top: 50px;">
                     대화 내용이 없습니다
                 </div>
 
+                <!-- recentMessages는 현재 화면에서 빈 반복 블록으로 유지 -->
                 <th:block th:each="msg : ${recentMessages}">
                 </th:block>
 
+                <!-- 서버가 내려준 기존 채팅 내역 렌더링 -->
                 <th:block th:each="msg : ${chatHistory}">
                     <div class="message"
                          th:classappend="${msg.aiGenerated ? 'ai received' : (msg.senderNo == userNo ? 'sent' : 'received')}"
@@ -122,6 +131,7 @@
                 </div>
             </div>
 
+            <!-- 채팅방이 확정된 경우에만 메시지 입력 영역 표시 -->
             <div class="chat-input-area" th:if="${targetNo != null or roomId != null}">
                 <div class="message-input-wrap">
                     <div id="aiHighlightLayer" class="message-input-highlight" aria-hidden="true"></div>
@@ -133,8 +143,9 @@
     </div>
 </div>
 
+<!-- 채팅 초기화에 필요한 서버 값을 JS 전역 상태로 주입 -->
 <script th:inline="javascript">
-    // 서버에서 전달받은 정보 (대시보드에서 넘겨준 값들)
+    // roomId, 로그인 사용자, 대상 사번은 chat.js의 STOMP 구독과 메시지 렌더링에서 사용
     window.currentRoomId = [[${roomId}]];
     window.currentUserNo = [[${userNo}]];
     window.currentUserName = [[${userName}]];

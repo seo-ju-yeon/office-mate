@@ -12,7 +12,7 @@
 </th:block>
 
 <div layout:fragment="content" class="organization-container">
-    <!-- 조직도 화면 제목과 직원 검색 영역 -->
+    <!-- 조직도 제목 및 직원 검색 영역 -->
     <div class="page-header">
         <div>
             <h1 class="page-title">조직도</h1>
@@ -20,36 +20,35 @@
         </div>
 
         <div class="search-box">
-<!--            <i data-lucide="search"></i>-->
             <input id="employee-search" type="text" placeholder="이름, 사번, 이메일 검색">
             <button type="button" class="search-button" onclick="renderOrganization()">검색</button>
         </div>
     </div>
 
-    <!-- 부서별 직원 목록을 전환하는 가로 탭 영역 -->
+    <!-- 부서 탭 렌더링 영역 -->
     <nav class="dept-tabs-wrapper">
         <div id="dept-list" class="dept-tabs">
-            <!-- JS로 탭 생성 -->
+            <!-- JS가 부서 탭 생성 -->
         </div>
     </nav>
 
-    <!-- 조직도 데이터 조회 실패 시 오류 메시지를 표시하는 영역 -->
+    <!-- 조직도 조회 오류 메시지 영역 -->
     <div id="organization-error" class="error-message"></div>
 
-    <!-- 부서 트리와 직원 카드 목록을 함께 보여주는 본문 영역 -->
+    <!-- 조직도 트리 및 직원 카드 본문 영역 -->
     <div class="organization-body">
-        <!-- 전체 조직과 부서별 직원을 빠르게 탐색하는 트리 영역 -->
+        <!-- 부서 트리 탐색 영역 -->
         <aside class="tree-panel">
             <div class="tree-header">
                 <h2 class="tree-title">트리 조회</h2>
                 <p class="tree-description">부서를 펼쳐 구성원을 빠르게 확인합니다.</p>
             </div>
             <div id="organization-tree" class="tree-list">
-                <!-- JS로 트리 생성 -->
+                <!-- JS가 조직 트리 생성 -->
             </div>
         </aside>
 
-        <!-- 선택된 부서와 검색 조건에 맞는 직원 카드를 표시하는 영역 -->
+        <!-- 직원 카드 목록 및 상태 필터 영역 -->
         <section class="member-panel">
             <div class="member-grid-header">
                 <h2 id="selected-dept-title" class="grid-title">전체 직원</h2>
@@ -58,16 +57,16 @@
             <div id="member-status-panel" class="member-status-panel">
                 <div id="status-summary" class="status-summary">재직 0명 · 휴직 0명</div>
                 <div id="status-tabs" class="status-tabs">
-                    <!-- JS로 상태 필터 생성 -->
+                    <!-- JS가 재직 상태 필터 생성 -->
                 </div>
             </div>
             <div id="member-grid" class="member-grid">
-                <!-- JS로 직원 카드 생성 -->
+                <!-- JS가 직원 카드 생성 -->
             </div>
         </section>
     </div>
 
-    <!-- SUPER 권한자가 직원 정보와 재직 상태를 수정하는 관리 모달 -->
+    <!-- SUPER 권한 직원 정보 관리 모달 영역 -->
     <div id="employee-management-modal" class="modal-backdrop" aria-hidden="true">
         <form class="employee-modal" onsubmit="saveManagedEmployee(event)">
             <div class="modal-header">

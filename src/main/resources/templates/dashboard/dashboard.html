@@ -12,11 +12,13 @@
 </th:block>
 
 <div layout:fragment="content" class="dashboard-container">
+    <!-- 대시보드 환영 메시지 영역 -->
     <div class="welcome-msg">
         <h1 style="margin:0; font-size: 24px;">안녕하세요, <span id="welcome-name">-</span>님!</h1>
         <p style="color: #6B778C;">오늘도 활기찬 하루 되세요.</p>
     </div>
 
+    <!-- 업무 요약 통계 카드 영역 -->
     <div class="summary-grid">
         <div class="dashboard-card card-stat-progress">
             <div class="card-title">진행 중인 업무</div>
@@ -41,6 +43,7 @@
         </div>
     </div>
 
+    <!-- 최근 공지사항 및 내 업무 현황 영역 -->
     <div class="dashboard-row">
         <div class="dashboard-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -69,6 +72,7 @@
         </div>
     </div>
 
+    <!-- 미확인 프로젝트/업무 알림 모달 영역 -->
     <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">

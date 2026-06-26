@@ -14,10 +14,12 @@
 </th:block>
 
 <div layout:fragment="content">
+    <!-- 캘린더 화면 제목 영역 -->
     <div class="content-header mb-4">
         <h2>일정 관리</h2>
     </div>
 
+    <!-- 참여 프로젝트 업무 필터 영역 -->
     <div id="project-filter-container">
         <div class="project-filter-title">
             <i data-lucide="layers" style="width:16px;"></i> 참여 중인 프로젝트 업무 보기
@@ -27,10 +29,12 @@
         </div>
     </div>
 
+    <!-- FullCalendar 렌더링 영역 -->
     <div id="calendar-container">
         <div id='calendar'></div>
     </div>
 
+    <!-- 이달의 개인 일정 목록 및 Google 내보내기 영역 -->
     <div id="event-list-container">
         <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
             <div>
@@ -44,6 +48,7 @@
         <div id="event-list-content"></div>
     </div>
 
+    <!-- 개인 일정 등록/수정 모달 영역 -->
     <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">

@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Office Mate - 레이아웃</title>
-    <!-- 외부 폰트와 아이콘/채팅 알림 라이브러리 로드 -->
+    <!-- 공통 폰트, Lucide, 전역 채팅 알림용 STOMP 라이브러리 연결 -->
     <link rel="stylesheet" as="style" crossorigin
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -15,6 +15,7 @@
     <link rel="stylesheet" th:href="@{/css/layout/layout.css}">
     <th:block layout:fragment="head-extra"></th:block>
 </head>
+<!-- activePage/pageRoles는 메뉴 활성화와 role 기반 직접 URL 접근 제어에 사용 -->
 <body th:data-active-page="${activePage}"
       th:data-page-roles="${pageRoles}">
 
@@ -26,7 +27,7 @@
     </div>
 
     <div class="header-right">
-        <!-- 사용자 이름은 JavaScript에서 /api/auth/me 조회 후 갱신함 -->
+        <!-- 사용자 이름은 layout.js가 /api/auth/me 조회 후 갱신 -->
         <div class="user-profile">
             <i data-lucide="user-circle"></i>
             <span><strong id="layout-user-name">방문자</strong>님</span>
@@ -46,7 +47,7 @@
 </header>
 
 <div class="main-wrapper">
-    <!-- 좌측 사이드바 영역 -->
+    <!-- data-roles 기준으로 layout.js가 노출 여부를 제어하는 좌측 사이드바 영역 -->
     <aside class="sidebar">
         <nav class="nav-menu">
             <div class="nav-section">
@@ -56,7 +57,7 @@
                    th:classappend="${activePage == 'dashboard'} ? 'active'">
                     <i data-lucide="layout-dashboard"></i> 대시보드
                 </a>
-                <!-- 게시판 하위 메뉴 아코디언 -->
+                <!-- 게시판 하위 메뉴 아코디언 영역 -->
                 <div class="nav-accordion role-menu-hidden" id="boardAccordion" data-roles="USER,ADMIN,SUPER">
                     <div class="nav-item nav-accordion-toggle"
                          th:classappend="${activePage == 'board'} ? 'active'"
@@ -117,13 +118,13 @@
         </a>
     </aside>
 
-    <!-- 페이지별 콘텐츠 본문 영역 -->
+    <!-- 각 화면의 layout:fragment content 삽입 영역 -->
     <main class="main-content">
         <div layout:fragment="content"></div>
     </main>
 </div>
 
-<!-- 채팅 알림 토스트 표시 영역 -->
+<!-- STOMP 개인 알림 채널 수신 후 표시되는 전역 채팅 토스트 영역 -->
 <div id="toastContainer"></div>
 
 <script th:src="@{/js/layout/layout.js}"></script>

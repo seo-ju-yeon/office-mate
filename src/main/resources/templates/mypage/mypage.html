@@ -10,11 +10,11 @@
 </th:block>
 
 <div layout:fragment="content" class="mypage-container">
-    <!-- 마이페이지 화면 제목 -->
+    <!-- 마이페이지 제목 영역 -->
     <h1 class="page-title">내 정보</h1>
 
     <div class="mypage-grid">
-        <!-- 현재 로그인 사용자의 기본 프로필 정보를 표시하는 영역 -->
+        <!-- 현재 로그인 사용자 프로필 정보 영역 -->
         <section class="profile-card">
             <h3>프로필 정보</h3>
             <div id="profile-message" class="message-area"></div>
@@ -45,12 +45,12 @@
             </button>
         </section>
 
-        <!-- 현재 비밀번호를 확인한 뒤 새 비밀번호로 변경하는 영역 -->
+        <!-- 비밀번호 변경 영역 -->
         <section class="profile-card">
             <h3>비밀번호 변경</h3>
             <div id="password-message" class="message-area"></div>
 
-            <!-- 비밀번호 변경 후 자동 로그아웃 안내 문구 -->
+            <!-- 비밀번호 변경 후 자동 로그아웃 안내 영역 -->
             <div class="logout-notice">
                 <i data-lucide="info" class="logout-notice-icon"></i>
                 <p>
@@ -78,7 +78,7 @@
             </form>
         </section>
 
-        <!-- 휴직/퇴사 신청과 본인 신청 이력을 관리하는 영역 -->
+        <!-- 재직 상태 변경 신청 및 이력 영역 -->
         <section class="profile-card status-request-card">
             <h3>재직 상태 변경 신청</h3>
             <div id="status-request-message" class="message-area"></div>
