@@ -1,65 +1,68 @@
-# PostgreSQL SQL 실행 가이드
+# SQL 실행 가이드
+
+Office Mate는 메인 업무 DB와 감사 로그 DB를 분리해 사용한다.
+
+- `office_mate_2605`: 직원, 인증, 권한, 게시판, 일정, 채팅, 프로젝트, 알림 등 업무 데이터
+- `office_mate_audit_log`: AOP/Redis/Scheduler 기반 감사 로그와 Redis 장애 fallback 로그
+
+## 파일 구성
+
+| 파일 | 실행 대상 DB | 설명 |
+| --- | --- | --- |
+| `01_init.sql` | `postgres` | `office_mate_2605`, `office_mate_audit_log` 데이터베이스 생성 |
+| `02_main_db.sql` | `office_mate_2605` | 메인 업무 DB 스키마 생성 |
+| `03_audit_db.sql` | `office_mate_audit_log` | 감사 로그 전용 DB 스키마 생성 |
+| `04_main_dummy.sql` | `office_mate_2605` | 로그인/권한/계정 보안/상태 신청/업무 화면 확인용 더미 데이터 |
+| `05_audit_log_dummy.sql` | `office_mate_audit_log` | 감사 로그 조회 화면 확인용 더미 데이터 |
 
 ## 실행 순서
 
-IntelliJ Ultimate의 Database 탭에서 PostgreSQL 데이터소스를 만든 뒤 아래 순서로 실행한다.
+1. PostgreSQL 기본 DB인 `postgres`에 연결한 뒤 `01_init.sql`을 실행한다.
+2. `office_mate_2605` 데이터소스에 연결한 뒤 `02_main_db.sql`을 실행한다.
+3. `office_mate_audit_log` 데이터소스에 연결한 뒤 `03_audit_db.sql`을 실행한다.
+4. 메인 화면 확인용 샘플 데이터가 필요하면 `office_mate_2605`에서 `04_main_dummy.sql`을 실행한다.
+5. 감사 로그 화면 확인용 샘플 데이터가 필요하면 `office_mate_audit_log`에서 `05_audit_log_dummy.sql`을 실행한다.
 
-1. `00_create_databases.sql`
-    - `main_db`, `audit_dh` 데이터베이스를 만든다.
-    - 이 파일은 `postgres` 기본 DB에 연결해서 실행한다.
+## 더미 계정
 
-2. `01_main_db_schema.sql`
-    - 직원, 권한, 게시판, 캘린더, 채팅, 프로젝트, AI 지식 테이블을 만든다.
-    - 이 파일은 `main_db`에 연결해서 실행한다.
+`04_main_dummy.sql`에는 로컬 실행과 포트폴리오 시연을 위한 테스트 계정이 포함되어 있다.
 
-3. `02_audit_db_schema.sql`
-    - AOP/Redis/Batch로 쌓을 감사 로그 테이블을 만든다.
-    - 이 파일은 `audit_dh`에 연결해서 실행한다.
+- 테스트 계정: `SUPER001`, `ADMIN001`, `BE001`, `FE001`, `MS001`
+- 공통 임시 비밀번호: `1111`
+- `employee.password`에는 `1111`의 BCrypt 해시가 저장되어 있다.
+- 최초 로그인 시 `temp_password_required = true` 상태이므로 비밀번호 변경 화면으로 이동한다.
 
-4. `03_pgvector_optional.sql`
-    - PGVector가 설치되어 있을 때만 실행한다.
-    - RAG 검색용 벡터 컬럼과 인덱스를 추가한다.
+이 값들은 시연용 더미 데이터이며 실제 운영 계정이나 실제 비밀번호가 아니다.
 
-5. `04_seed_portfolio_data.sql`
-    - 포트폴리오 시연용 직원, 게시판, 기본 권한, 공지글을 넣는다.
-    - 이 파일은 `main_db`에 연결해서 실행한다.
+## 주요 테이블
 
-## 테이블 관리 기준
+### 메인 업무 DB
 
-- 단순 CRUD: JPA 사용
-    - `employee`, `board`, `post`, `post_comment`, `meeting_room`, `refresh_token`
+- 기준 정보: `departments`, `position_rank`, `roles`
+- 직원/권한/계정 보안: `employee`, `employee_roles`, `account_security_status`, `employee_status_request`, `refresh_token`
+- 게시판: `board`, `post`, `post_attachment`, `post_comment`
+- 일정: `google_calendar_link`, `calendar_event`
+- 채팅/AI: `chat_room`, `chat_room_ai_config`, `chat_room_member`, `chat_message`
+- 프로젝트/알림: `project`, `project_member`, `project_task`, `notification`
 
-- JOIN/집계/검색: MyBatis 사용
-    - 게시글 목록 + 작성자 + 첨부 수
-    - 부서 x 직급 권한 조회
-    - 대시보드 일정/태스크 조회
-    - 프로젝트 진척도 집계
-    - AI RAG 검색 결과 조합
+### 감사 로그 DB
 
-## 왜 DB를 둘로 나누는가
+- `audit_log`: Redis 큐 또는 fallback 로그에서 이관된 감사 로그
+- `audit_fallback_log`: Redis 저장 실패 시 원본 이벤트를 임시 보관하는 fallback 로그
 
-- `main_db`: 실제 업무 데이터
-- `audit_dh`: 감사 로그 전용 데이터
+## 주석 관리 기준
 
-감사 로그 DB에 장애가 생겨도 직원 등록, 게시글 작성, 채팅 같은 메인 기능이 멈추면 안 되므로 분리한다.
-
-## main_db 주요 테이블
-
-- 기준 정보: `departments`, `position_rank`, `roles`, `permissions`, `role_permissions`
-- 직원/권한: `employee`, `employee_roles`
-- 개인정보: `privacy_policies`, `privacy_consents`
-- 게시판: `board`, `post`, `post_comment`, `post_attachment`
-- 일정/캘린더: `google_calendar_link`, `calendar_event`
-- 채팅: `chat_room`, `chat_room_member`, `chat_message`
-- 프로젝트: `project`, `project_member`, `project_task`
-- AI/업무/알림: `meeting_room`, `meeting_reservation`, `work_log`, `notification`, `ai_knowledge`
+- 파일 상단 주석은 실행 대상 DB, 실행 순서, 포함 내용, 주의사항을 안내한다.
+- 컬럼 옆 인라인 주석은 SQL을 읽을 때 바로 필요한 짧은 의미만 남긴다.
+- `COMMENT ON TABLE`과 `COMMENT ON COLUMN`은 IntelliJ Database 창에서 확인할 수 있는 DB 메타 설명으로 사용한다.
+- 더미 데이터 주석은 어떤 화면이나 기능 검증에 필요한 데이터인지 중심으로 작성한다.
 
 ## PostgreSQL 초보 주의점
 
 - `bigserial`: 자동 증가 숫자 PK이다.
-- `timestamptz`: 타임존이 포함된 시간 타입이다. 서버/사용자 시간대 차이를 줄인다.
-- `enum`: 정해진 값만 넣을 수 있는 타입이다. 상태값, 부서, 직급처럼 고정된 값에 적합하다.
-- `REFERENCES`: 외래키이다. 예를 들어 게시글 작성자는 반드시 `employee`에 존재해야 한다.
-- `CHECK`: 데이터 규칙이다. 예를 들어 일정 종료 시간이 시작 시간보다 늦어야 한다.
-- `deleted_at`: 실제 DELETE 대신 삭제 시각만 넣는 soft delete 용도이다.
-- `COMMENT ON COLUMN`: 컬럼 설명이다. IntelliJ Database 창에서 테이블/컬럼 정보를 볼 때 설명으로 확인할 수 있다.
+- `timestamptz`: 타임존이 포함된 시간 타입이다.
+- `enum`: 부서, 직급, 상태처럼 정해진 값만 허용하는 타입이다.
+- `REFERENCES`: 외래키이다.
+- `CHECK`: 데이터 입력 규칙이다.
+- `deleted_at`: 실제 DELETE 대신 삭제 시각을 기록하는 soft delete 용도이다.
+- `revoked_at`: Refresh Token을 물리 삭제하지 않고 폐기 처리한 시각을 기록하는 컬럼이다.

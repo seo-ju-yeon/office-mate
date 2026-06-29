@@ -1,7 +1,8 @@
--- main_db schema
+-- 파일 목적: 메인 업무 DB 스키마를 생성한다.
 -- 실행 대상 DB: office_mate_2605
--- 목적: 직원, 권한, 게시판, 캘린더, 채팅, 프로젝트 데이터를 관리한다.
--- IntelliJ Ultimate에서는 office_mate_2605 데이터소스를 선택한 뒤 이 파일 전체를 실행한다.
+-- 실행 순서: 2
+-- 포함 내용: 직원/권한/계정 보안/게시판/일정/채팅/프로젝트/알림/Refresh Token 테이블
+-- 주의사항: 01_init.sql 실행 후 office_mate_2605 데이터소스를 선택한 뒤 실행한다.
 
 CREATE TYPE department_code AS ENUM (
     'FRONTEND', -- 프론트엔드 팀
@@ -125,8 +126,8 @@ INSERT INTO position_rank (position, rank_order)
 VALUES ('STAFF', 1),  -- 사원
        ('ASSISTANT_MANAGER', 2),  -- 대리
        ('MANAGER', 3),  -- 과장
-       ('DEPUTY_GENERAL_MANAGER', 4),  -- 부장
-       ('GENERAL_MANAGER', 5),  -- 차장
+       ('GENERAL_MANAGER', 4),  -- 부장
+       ('DEPUTY_GENERAL_MANAGER', 5),  -- 차장
        ('CEO', 6);  -- 사장
 
 CREATE TABLE roles

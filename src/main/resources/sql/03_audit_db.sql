@@ -1,7 +1,8 @@
--- audit log schema
+-- 파일 목적: 감사 로그 전용 DB 스키마를 생성한다.
 -- 실행 대상 DB: office_mate_audit_log
--- 목적: AOP/Redis/Scheduler 기반 감사 로그를 메인 업무 DB와 분리된 감사 로그 전용 DB에 보관한다.
--- IntelliJ Ultimate에서는 office_mate_audit_log 데이터소스를 선택한 뒤 이 파일 전체를 실행한다.
+-- 실행 순서: 3
+-- 포함 내용: 감사 로그 테이블, Redis fallback 테이블, 조회용 인덱스
+-- 주의사항: 01_init.sql 실행 후 office_mate_audit_log 데이터소스를 선택한 뒤 실행한다.
 
 CREATE TYPE audit_action AS ENUM (
     'CREATE', -- 데이터 생성
@@ -80,7 +81,7 @@ COMMENT ON COLUMN audit_fallback_log.reason IS 'fallback 저장 사유. 예: Red
 COMMENT ON COLUMN audit_fallback_log.occurred_at IS 'fallback 로그가 저장된 시각.';
 COMMENT ON COLUMN audit_fallback_log.processed_at IS '스케줄러 이관 작업이 audit_log로 이관 완료한 시각. 미처리 상태면 NULL이다.';
 
--- 아직 audit_log로 이관되지 않은 fallback 로그를 빠르게 조회하하기 위한 부분 인덱스
+-- 아직 audit_log로 이관되지 않은 fallback 로그를 빠르게 조회하기 위한 부분 인덱스
 CREATE INDEX idx_audit_fallback_unprocessed
     ON audit_fallback_log (id)
     WHERE processed_at IS NULL;
