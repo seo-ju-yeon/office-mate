@@ -59,22 +59,18 @@ public class AuthService {
     // 변경 후 기존 refresh token을 모두 폐기해 재인증을 유도
     @Transactional
     public AuthResultResponseDTO changePassword(EmployeePrincipal principal, PasswordChangeRequestDTO request) {
-        // 포트폴리오 단계에서는 최소 길이만 검사
-        // 추후 운영 수준으로 가면 영문/숫자/특수문자 조합 검사도 추가 가능
-        if (request.newPassword() == null || request.newPassword().length() < 4) {
-//            throw new IllegalArgumentException("new_password_too_short");
+        // 새 비밀번호는 최소 길이만 검사하고, 추후 영문/숫자/특수문자 조합 정책으로 확장할 수 있다.
+        if (request.newPassword() == null || request.newPassword().length() < 8) {
             throw new IllegalArgumentException("새 비밀번호는 8자 이상이어야 합니다.");
         }
 
         // 비밀번호는 최신 DB 값을 기준으로 변경해야 하므로 employee 테이블에서 다시 조회
         Employee employee = employeeRepository.findByEmployeeNoAndDeletedAtIsNull(principal.getEmployeeNo())
-//                .orElseThrow(() -> new IllegalArgumentException("employee_not_found"));
                 .orElseThrow(() -> new IllegalArgumentException("직원 정보를 찾을 수 없습니다."));
 
         // 현재 비밀번호가 넘어온 경우 BCrypt matches로 원문과 해시를 비교
         // DB에는 평문 비밀번호가 없으므로 equals 비교 금지
         if (request.currentPassword() != null && !passwordEncoder.matches(request.currentPassword(), employee.getPassword())) {
-//            throw new IllegalArgumentException("current_password_mismatch");
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
 
