@@ -81,7 +81,7 @@ function handleUserClick(element, event) {
 
     const employeeNo = element.getAttribute('data-employee-no');
 
-    console.log("선택된 직원 사번:", employeeNo);
+    // console.log("선택된 직원 사번:", employeeNo);
 
     // 1:1 채팅방 생성 또는 기존 방 조회 요청
     fetch('/api/chat/room/group', {
@@ -431,7 +431,7 @@ window.addEventListener('focus', () => {
 
 /* 온라인 사용자 상태 표시 처리 */
 function updateAllUserStatus(onlineList) {
-    console.log("현재 온라인 사번들:", onlineList);
+    // console.log("현재 온라인 사번들:", onlineList);
 
     // 모든 상태 표시점 오프라인 초기화
     document.querySelectorAll('.status-indicator').forEach(dot => {
@@ -629,18 +629,18 @@ async function loadMoreMessages() {
 
 /* STOMP 연결 완료 후 실시간 채널 구독 처리 */
 stompClient.onConnect = (frame) => {
-    console.log('Connected: ' + frame);
+    // console.log('Connected: ' + frame);
 
     // 실시간 온라인 상태 채널 구독
     stompClient.subscribe('/sub/status', (message) => {
-        console.log("실시간 상태 수신:", message.body);
+        // console.log("실시간 상태 수신:", message.body);
         const onlineEmployeeNos = JSON.parse(message.body);
         updateAllUserStatus(onlineEmployeeNos);
     });
 
     // 현재 채팅방 번호가 있을 때만 메시지 채널 구독
     if (currentRoomId) {
-        console.log(currentRoomId + "번 방");
+        // console.log(currentRoomId + "번 방");
 
         stompClient.subscribe(`/sub/chat/${currentRoomId}`, (message) => {
             const msg = JSON.parse(message.body);
@@ -724,7 +724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (token) localStorage.setItem("accessToken", token);
     if (empNo) localStorage.setItem("employeeNo", empNo);
-    console.log("인증 정보 동기화 완료");
+    // console.log("인증 정보 동기화 완료");
 
     try {
         // 내 직원 정보를 조회해 현재 사용자 사번 확정
@@ -900,7 +900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 window.addEventListener('focus', () => {
     if (stompClient && stompClient.connected && currentRoomId) {
-        console.log("창 포커스 감지: 읽음 처리 전송");
+        // console.log("창 포커스 감지: 읽음 처리 전송");
         sendReadReceipt();
     }
 });

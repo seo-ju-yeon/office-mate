@@ -182,7 +182,7 @@ async function checkNewNotifications() {
                     // 업무 배정 알림은 업무 목록 즉시 갱신
                     if (noti.refType === 'PROJECT') {
                         // 프로젝트 초대 알림은 확인 로그만 남김
-                        console.log("프로젝트 초대 확인 완료");
+                        // console.log("프로젝트 초대 확인 완료");
                     } else {
                         // 업무 배정 알림은 내 업무 목록 갱신
                         fetchMyTasks();

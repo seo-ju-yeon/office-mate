@@ -129,7 +129,7 @@ async function checkAndAutoCloseProjects() {
     for (const project of targetProjects) {
         try {
             await axios.patch(`/api/projects/${project.id}/status`, { status: 'DONE' });
-            console.log(`[시스템] 프로젝트 '${project.name}'의 모든 업무가 완료되어 자동으로 완료 처리되었습니다.`);
+            // console.log(`[시스템] 프로젝트 '${project.name}'의 모든 업무가 완료되어 자동으로 완료 처리되었습니다.`);
         } catch (error) {
             console.error(`프로젝트 자동 완료 처리 중 오류 발생 (ID: ${project.id})`, error);
         }
