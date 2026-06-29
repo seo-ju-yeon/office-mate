@@ -53,7 +53,7 @@ public class APILoginFilter extends AbstractAuthenticationProcessingFilter {
         // 요청 JSON 예:
         // { "employeeNo": "SUPER001", "password": "1111" }
         Map<String, String> jsonData = parseRequestJSON(request);
-        log.info("--- 디버그 로그 jsonData: {} ---", jsonData);
+//        log.info("--- 디버그 로그 jsonData: {} ---", jsonData);
 
         String employeeNo = jsonData.get("employeeNo");  // 사번(로그인 ID)
         String password = jsonData.get("password");

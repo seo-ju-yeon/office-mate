@@ -168,7 +168,8 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
         // JSON 응답을 클라이언트에게 전송
         response.getWriter().println(jsonStr);
 
-        log.info("--- New accessToken: {} ---", accessToken);
+//        log.info("--- New accessToken: {} ---", accessToken);
+        log.info("--- Access Token 재발급 완료 ---");
 
     }
 

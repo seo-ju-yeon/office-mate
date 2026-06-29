@@ -45,7 +45,8 @@ public class JWTUtil {
     public String generateToken(Map<String, Object> valueMap, Duration duration) {
         log.info("--- JWTUtil.generateToken() 진입 duration={}, claimKeys={} ---", duration, valueMap.keySet());
 
-        log.info("generateKey: {}", key);
+//        log.info("generateKey: {}", key);
+        log.info("JWT 생성 완료 duration={}, claimKeys={}", duration, valueMap.keySet());
 
         // JWT header 영역
         Map<String, Object> headers = new HashMap<>();

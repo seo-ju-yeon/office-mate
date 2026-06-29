@@ -81,7 +81,8 @@ public class MailSenderService {
                 + "</div>";
 
         send(to, subject, body);
-        log.info("--- <배포시 삭제 필수> 임시 발급된 비밀번호: {} ---", tempPassword);
+//        log.info("--- 임시 발급된 비밀번호: {} ---", tempPassword);
+        log.info("--- 임시 비밀번호 메일 발송 완료 | To: {} ---", to);
         log.info("--- [sendPasswordResetMail] 발송 완료 | To: {} ---", to);
     }
 
