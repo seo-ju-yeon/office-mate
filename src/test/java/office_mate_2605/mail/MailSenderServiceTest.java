@@ -18,7 +18,7 @@ class MailSenderServiceTest {
     @Test
     void sendPasswordResetMail() throws MessagingException, UnsupportedEncodingException {
         // 실제로 메일을 받을 수 있는 이메일 주소를 입력한다.
-        String to = "wndus6110@naver.com";
+        String to = "mailTest@naver.com";
 
         // 테스트용 임시 비밀번호
         String tempPassword = "Test1234!";
