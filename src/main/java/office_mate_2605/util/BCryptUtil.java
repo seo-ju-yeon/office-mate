@@ -88,45 +88,4 @@ public class BCryptUtil {
         }
         return -1;
     }
-
-    // BCrypt 해싱과 검증 동작을 직접 확인하는 테스트용 메인 메서드
-    public static void main(String[] args) {
-        // 테스트 1: 비밀번호 해싱
-        System.out.println("=== BCrypt 비밀번호 암호화 테스트 ===\n");
-
-        String password = "1111";
-//        String password = "admin1234";
-//        String password = "test01";
-        String hashed = hashPassword(password);
-
-        System.out.println("평문 비밀번호: " + password);
-        System.out.println("해시된 비밀번호: " + hashed);
-        System.out.println("해시 길이: " + hashed.length() + "자");
-        System.out.println("Work Factor: " + getWorkFactor(hashed));
-
-        // 테스트 2: 비밀번호 검증
-        System.out.println("\n=== 비밀번호 검증 테스트 ===\n");
-
-        boolean correct = checkPassword("admin1234", hashed);
-        boolean wrong = checkPassword("wrongpass", hashed);
-
-        System.out.println("올바른 비밀번호 입력: " + correct + " ✅");
-        System.out.println("잘못된 비밀번호 입력: " + wrong + " ❌");
-
-        // 테스트 3: 같은 비밀번호라도 해시는 매번 다름 (솔트 자동 생성)
-        System.out.println("\n=== 솔트 테스트 ===\n");
-
-        String hash1 = hashPassword("test123");
-        String hash2 = hashPassword("test123");
-        String hash3 = hashPassword("test123");
-
-        System.out.println("같은 비밀번호의 서로 다른 해시:");
-        System.out.println("해시1: " + hash1);
-        System.out.println("해시2: " + hash2);
-        System.out.println("해시3: " + hash3);
-        System.out.println("\n모두 다른 해시지만, 검증은 모두 통과:");
-        System.out.println("hash1 검증: " + checkPassword("test123", hash1));
-        System.out.println("hash2 검증: " + checkPassword("test123", hash2));
-        System.out.println("hash3 검증: " + checkPassword("test123", hash3));
-    }
 }
