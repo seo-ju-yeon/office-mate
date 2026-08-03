@@ -1,19 +1,21 @@
 # Office Mate
 
-Office Mate는 사내 협업에 필요한 인증/인가, 직원 관리, 프로젝트/업무 관리, 일정, 게시판, 실시간 채팅, 감사 로그, AI 업무 보조 기능을 통합한 그룹웨어 시스템입니다.
+Office Mate는 사내 협업에 필요한 인증/인가, 직원 관리, 프로젝트/업무 관리, 일정, 게시판, 실시간 채팅, 감사 로그, AI 업무 보조 기능을 통합한 4인 팀 프로젝트입니다.
 
-이 프로젝트에서 저는 JWT 기반 인증/인가, 직원 관리, 휴직/복직/퇴사 승인, 계정 보안, 감사 로그 수집/조회 기능을 담당했습니다. 단순 CRUD 구현보다 실제 업무시스템에서 필요한 계정 상태 관리, 토큰 폐기, 권한 제어, 감사 이력 보존 흐름을 이해하고 구현하는 데 집중했습니다.
+이 프로젝트에서 저는 JWT 기반 인증/인가, 직원 관리, 휴직/복직/퇴사 신청 및 승인/반려, 계정 보안, 감사 로그 수집/조회 기능을 담당했습니다. 직원 CRUD에 더해 그룹웨어 시나리오에서 필요한 계정 상태 관리, 토큰 폐기, 권한 제어, 감사 이력 보존 흐름을 연결해 구현하는 데 집중했습니다.
 
 ## 1. 프로젝트 개요
 
 - 프로젝트 명칭: Office Mate
+- 구분: 4인 팀 프로젝트
 - 기간: 2026.04 ~ 2026.05
 - 인원: 4명
 - 핵심 컨셉: 직원 관리, 프로젝트/업무, 일정, 게시판, 실시간 채팅, 감사 로그, AI 업무 보조를 하나의 시스템에서 제공하는 통합 그룹웨어
 - 개발 배경 및 목적: 기업 내 분산된 업무 도구와 소통 채널을 하나의 플랫폼으로 통합하고, 인증/권한/감사 로그를 통해 사내 업무시스템에 필요한 보안성과 추적 가능성을 확보하는 것을 목표로 했습니다.
-- 담당 역할: 인증/인가, 직원 관리, 계정 보안, 휴직/복직/퇴사 승인, 감사 로그
+- 담당 역할: JWT 인증/인가, 직원 등록·목록/상세 조회·수정·논리 삭제, 계정 보안, 휴직·복직·퇴사 신청 및 승인/반려, 감사 로그 수집·조회
+- 검증 범위: 로컬 개발 환경에서 기능 동작을 확인했으며, 별도 배포와 성능 테스트는 진행하지 않았습니다.
 
-## 2. 주요 기능
+## 2. 팀 전체 주요 기능
 
 | 영역 | 기능 |
 | --- | --- |
@@ -24,7 +26,7 @@ Office Mate는 사내 협업에 필요한 인증/인가, 직원 관리, 프로�
 | 감사 로그 | 로그인 및 주요 관리자 행위 기록, Redis 큐 적재, audit DB 이관, 조회/필터링 |
 | 프로젝트/업무 | 프로젝트 생성/조회/상태 관리, 업무 할당/진척도 관리 |
 | 대시보드/알림 | 진행 중 업무, 오늘 마감 업무, 지연 업무, 업무 알림 |
-| 캘린더 | 개인/부서/프로젝트/업무 일정 관리, Google Calendar 내보내기 |
+| 캘린더 | 개인·프로젝트 일정 관리, 프로젝트 업무 일정 연계, Google Calendar 내보내기 |
 | 채팅/AI | WebSocket 실시간 채팅, Redis 초안 저장, OpenAI 기반 업무 보조 |
 | 게시판 | 공지사항/자유게시판, 검색/페이징, 댓글, 첨부파일 |
 
@@ -34,19 +36,19 @@ Office Mate는 사내 협업에 필요한 인증/인가, 직원 관리, 프로�
 | --- | --- |
 | 인증/인가 | Spring Security Filter 기반 JSON 로그인, JWT Access Token 검증, Refresh Token 재발급 |
 | 토큰 관리 | Refresh Token HttpOnly Cookie 저장, DB 해시 저장, 로그아웃/비밀번호 변경/휴직/퇴사 시 폐기 |
-| 직원 관리 | 직원 등록/수정/삭제, 사번/이메일 중복 검증, 조직도 조회, 권한/재직 상태 관리 |
+| 직원 관리 | 직원 등록·목록/상세 조회·수정·논리 삭제, 사번/이메일 중복 검증, 권한/재직 상태 관리 |
 | 상태 신청 | 휴직/복직/퇴사 신청, SUPER 권한 기반 승인/반려, 비활성 계정 API 접근 차단 |
 | 계정 보안 | 로그인 실패 횟수 누적, 5회 실패 시 계정 잠금, 관리자 잠금 해제 |
 | 감사 로그 | AOP 기반 주요 API 성공/실패 수집, Redis 임시 저장, Scheduler 기반 audit DB 이관 |
 | 관리자 화면 | 계정 보안 관리, 감사 로그 조건 검색/페이징/상세 조회 화면 연동 |
 
-## 3. 기술 스택
+## 3. 팀 프로젝트 전체 기술 스택
 
 - Language: Java 21
 - Backend: Spring Boot, Spring MVC, Spring Security, Spring AOP, Spring Scheduling, Spring WebSocket/STOMP, Spring AI
 - Frontend/View: Thymeleaf, Thymeleaf Layout Dialect, HTML, CSS, JavaScript, Axios
 - Database: PostgreSQL, Redis
-- Data Access: Spring Data JPA, MyBatis, JdbcTemplate, QueryDSL
+- Data Access: Spring Data JPA, MyBatis, JdbcTemplate
 - External API: OpenAI API, Google Calendar API, Java Mail
 - Tools: Gradle, Lombok, ModelMapper, Gson, Springdoc OpenAPI, JUnit 5
 
@@ -90,12 +92,12 @@ API 요청
  -> AuditLogFlushScheduler
  -> audit_log 이관
 
-Redis 장애
+Redis 저장 실패
  -> audit_fallback_log 저장
- -> Scheduler 재이관
+ -> Redis 접근 정상화 후 Scheduler 재이관
 ```
 
-감사 로그는 비즈니스 로직과 분리된 공통 관심사로 보고 AOP로 수집했습니다. 사용자 요청 흐름에서 직접 audit DB에 저장하지 않고 Redis에 먼저 적재한 뒤 Scheduler가 이관하도록 구성했습니다.
+감사 로그는 비즈니스 로직과 분리된 공통 관심사로 보고 AOP로 수집했습니다. 감사 로그 저장으로 API 요청 처리 시간이 늘어날 가능성을 고려해, 요청 경로에서는 Redis 큐에 적재하고 audit DB 저장은 Scheduler로 분리했습니다.
 
 ## 5. 담당 기능
 
@@ -210,7 +212,7 @@ API 요청
 - 신규 직원은 임시 비밀번호 변경 필요 상태로 생성
 - ADMIN은 USER 직원만 생성 가능
 - SUPER는 ADMIN/SUPER 권한까지 관리 가능
-- `employee_roles`에도 역할 저장
+- 역할 변경 시 `employee.role`과 `employee_roles` 매핑 동기화
 - 휴직/퇴사/삭제 처리 시 Refresh Token 폐기
 
 또한 휴직/복직/퇴사 신청과 승인/반려 흐름을 구현하고, 비활성 계정은 다음 API 요청부터 `TokenCheckFilter`에서 차단되도록 처리했습니다.
@@ -234,7 +236,7 @@ API 요청
 
 처음에는 `@Auditable` 어노테이션 방식도 검토했지만, 감사 대상 API가 여러 Controller에 흩어지는 문제가 있었습니다. 최종적으로 `AuditLogPolicyRegistry`에서 HTTP Method, URI 패턴, action, targetType, targetId 추출 규칙을 중앙관리하도록 구성했습니다.
 
-감사 로그는 사용자 요청 흐름에 직접 DB insert를 수행하지 않고 Redis에 먼저 적재했습니다. 이후 Scheduler가 주기적으로 별도 audit DB로 이관합니다. Redis 장애 시에는 `audit_fallback_log`에 원본 이벤트를 저장하고, 복구 후 정식 `audit_log`로 재이관하는 fallback 흐름도 구현했습니다.
+감사 로그는 사용자 요청 흐름에 직접 DB insert를 수행하지 않고 Redis에 먼저 적재했습니다. 이후 Scheduler가 주기적으로 별도 audit DB로 이관합니다. Redis 저장 실패 시에는 `audit_fallback_log`에 원본 이벤트를 저장하고, Redis 접근이 정상화된 뒤 Scheduler가 미처리 행을 `audit_log`로 이관하도록 구성했습니다.
 
 ## 6. 데이터베이스 설계 요약
 
@@ -257,9 +259,8 @@ Office Mate는 메인 업무 DB와 감사 로그 DB를 분리했습니다. 메�
 | 구분 | 테이블 | 주요 컬럼 | 역할 |
 | --- | --- | --- | --- |
 | 기준 데이터 | `departments` | `code`, `name`, `sort_order` | 직원 소속 부서 마스터 데이터 |
-| 기준 데이터 | `roles` | `code`, `name`, `description` | Spring Security 권한과 연결되는 `USER`, `ADMIN`, `SUPER` 역할 마스터 |
 | 직원/계정 | `employee` | `employee_no`, `password`, `temp_password_required`, `name`, `email`, `department`, `position`, `role`, `status`, `joined_on`, `resigned_on`, `deleted_at` | 직원 기본 정보, 로그인 ID, 권한, 재직 상태, 임시 비밀번호 변경 필요 여부 관리 |
-| 권한 | `employee_roles` | `employee_no`, `role_code`, `granted_at`, `granted_by` | 직원별 역할 부여 이력 관리 |
+| 권한 | `roles`, `employee_roles` | `code`, `role_code`, `granted_by` | 시스템 역할 기준과 직원별 현재 역할 매핑 관리 |
 | 토큰 | `refresh_token` | `employee_no`, `token_hash`, `expires_at`, `revoked_at` | Refresh Token 원문 대신 해시 저장, 로그아웃/비밀번호 변경/휴직/퇴사 시 `revoked_at` 기록 |
 | 계정 보안 | `account_security_status` | `employee_no`, `login_fail_count`, `account_locked`, `last_failed_at`, `locked_at`, `unlocked_at`, `unlocked_by` | 로그인 실패 횟수와 계정 잠금/해제 상태 관리 |
 | 직원 상태 | `employee_status_request` | `employee_no`, `request_type`, `reason`, `status`, `decided_by`, `decided_at`, `decision_comment` | 휴직/복직/퇴사 신청과 승인/반려 이력 관리 |
@@ -398,12 +399,6 @@ Google Calendar 연동을 사용하려면 Google Cloud Console에서 OAuth Clien
 http://localhost:8080
 ```
 
-### 테스트 실행
-
-```bash
-./gradlew test
-```
-
 ### API 문서
 
 Springdoc OpenAPI Swagger UI를 통해 API 명세를 확인할 수 있습니다.
@@ -412,128 +407,87 @@ Springdoc OpenAPI Swagger UI를 통해 API 명세를 확인할 수 있습니다.
 http://localhost:8080/swagger-ui/index.html
 ```
 
-## 9. 주요 화면
+## 9. 문제 해결과 설계 판단
 
-대표 화면은 README와 Notion 포트폴리오에 함께 첨부할 수 있도록 별도 캡처로 정리할 예정입니다.
+### 9-1. Refresh Token 저장 위치와 폐기 방식
 
-추천 캡처 화면:
+초기에는 Access Token과 Refresh Token을 모두 JSON 응답으로 내려주고 브라우저 localStorage에 저장했습니다. 하지만 JavaScript에서 장기 Refresh Token에 접근할 수 있다는 점을 확인하면서 두 토큰의 저장 위치를 분리했습니다.
 
-- 로그인 화면
-- 대시보드
-- 직원 등록
-- 조직도
-- 휴직/복직/퇴사 신청 관리
-- 계정 보안 관리
-- 감사 로그 조회
-- 프로젝트/업무 관리
-- 채팅 화면
+현재는 Access Token만 JSON body로 반환하고, Refresh Token은 HttpOnly Cookie로 전달합니다. 서버 DB에는 Refresh Token 원문 대신 SHA-256 해시를 저장하며, 로그아웃·비밀번호 변경·휴직·퇴사 처리 시 `revoked_at`을 기록해 재발급을 차단합니다.
 
-## 10. 트러블슈팅
+새 Refresh Token을 저장할 때 해당 계정의 기존 활성 토큰을 모두 폐기하므로 여러 기기의 로그인 세션을 개별적으로 관리하지는 못합니다.
 
-README에는 제출 검토자가 빠르게 확인할 수 있도록 대표 사례만 정리했습니다. 각 사례는 문제 상황, 원인 추적, 해결 방법, 결과를 중심으로 작성했습니다.
+### 9-2. 계정 상태 변경을 기존 Access Token 요청에 반영
 
-### 10-1. Refresh Token 저장 구조 개선
+JWT의 claim은 발급된 뒤 자동으로 바뀌지 않습니다. 따라서 휴직·퇴사 처리나 계정 잠금 뒤에도 만료 전 Access Token이 남아 있을 수 있습니다.
 
-문제 상황: 초기 구현에서는 Access Token과 Refresh Token을 모두 JSON 응답으로 내려주고 브라우저 localStorage에 저장했습니다. 구현은 단순했지만, JavaScript에서 장기 유효한 Refresh Token에 직접 접근할 수 있다는 문제가 있었습니다.
+`TokenCheckFilter`에서 Access Token을 검증한 뒤 `employeeNo`로 DB의 최신 직원 상태와 계정 잠금 상태를 다시 조회했습니다. `ACTIVE`가 아니거나 잠긴 계정은 `ACCOUNT_INACTIVE` 또는 `ACCOUNT_LOCKED` 응답으로 업무 API 접근을 막고, 프론트 공통 처리에서 브라우저 토큰을 삭제한 뒤 로그인 화면으로 이동하도록 구성했습니다.
 
-원인 추적: 토큰 저장 위치를 검토하면서 Access Token은 짧은 수명으로 API 호출에 사용되지만, Refresh Token은 Access Token을 계속 재발급할 수 있는 장기 토큰이라는 점을 확인했습니다. localStorage는 브라우저 JavaScript에서 접근 가능하므로 XSS 상황에서 Refresh Token 탈취 위험이 더 크다고 판단했습니다.
+이 방식은 JWT claim만 확인하는 것보다 DB 조회가 늘어나지만, 계정 상태 변경을 다음 API 요청에 반영하는 것을 우선했습니다.
 
-원인: Access Token과 Refresh Token의 역할과 수명이 다른데도 동일한 저장 방식을 사용한 것이 핵심 원인이었습니다.
+### 9-3. Redis 저장 실패 시 감사 로그 보관
 
-해결 방법: Access Token은 JSON body로 반환해 API 호출에 사용하고, Refresh Token은 HttpOnly Cookie에 저장하도록 분리했습니다. 서버 DB에는 Refresh Token 원문 대신 SHA-256 해시만 저장하고, 로그아웃/비밀번호 변경/휴직/퇴사 처리 시 `revoked_at`을 기록해 재발급을 차단했습니다.
+감사 로그 저장으로 API 요청 처리 시간이 늘어날 가능성을 고려해 요청 경로에서는 Redis 큐에 적재하고, audit DB 저장은 Scheduler가 처리하도록 분리했습니다. 하지만 Redis 저장에 실패하면 큐에 이벤트를 남길 수 없습니다.
 
-결과: 브라우저 JavaScript에서 Refresh Token에 직접 접근할 수 없게 되었고, 서버에서는 DB의 hash 및 `revoked_at` 상태를 기준으로 Refresh Token 유효성을 통제할 수 있게 되었습니다.
-
-배운 점: JWT 기반 인증에서도 토큰을 발급하는 것만큼 저장 위치와 폐기 정책이 중요하다는 것을 배웠습니다.
-
-핵심 정리: 장기 토큰은 JavaScript 접근 영역에서 분리하고, 서버 측에서 재발급 권한을 통제할 수 있어야 합니다.
-
-### 10-2. JWT stateless 한계 보완
-
-문제 상황: 관리자가 직원을 휴직/퇴사 처리하거나 계정을 잠가도, 이미 발급된 Access Token이 남아 있으면 사용자가 기존 토큰으로 API를 계속 호출할 가능성이 있었습니다.
-
-원인 추적: JWT Access Token은 서버 세션을 조회하지 않는 Stateless 구조이기 때문에, 발급 시점의 claim만 검증하면 이후 DB에서 변경된 직원 상태나 계정 잠금 상태가 즉시 반영되지 않는다는 점을 확인했습니다.
-
-원인: Access Token 자체는 서버에서 직접 삭제할 수 없고, 토큰 내부 claim은 발급 이후 자동으로 변경되지 않는 것이 원인이었습니다.
-
-해결 방법: `TokenCheckFilter`에서 Access Token 검증 후 `employeeNo`를 기준으로 DB의 최신 직원 상태와 계정 잠금 상태를 다시 조회했습니다. `ACTIVE`가 아니거나 잠긴 계정이면 `ACCOUNT_INACTIVE` 또는 `ACCOUNT_LOCKED` 응답을 반환하고, 프론트 공통 fetch handler에서 알림 표시 후 브라우저 토큰을 삭제하고 로그인 페이지로 이동하도록 처리했습니다.
-
-결과: 기존 Access Token이 남아 있어도 다음 API 요청부터 최신 계정 상태를 기준으로 접근을 차단할 수 있게 되었습니다.
-
-배운 점: Stateless 인증 구조는 확장성과 단순성의 장점이 있지만, 업무시스템처럼 계정 상태 변경을 즉시 반영해야 하는 환경에서는 DB 재검증 같은 보완 정책이 필요하다는 것을 배웠습니다.
-
-핵심 정리: JWT claim만 신뢰하지 않고, 중요한 업무 API 진입 전 DB 최신 상태를 확인해 계정 생명주기 정책을 반영했습니다.
-
-### 10-3. 감사 로그 Redis 장애 대비 fallback
-
-문제 상황: 감사 로그는 API 요청 흐름에 부담을 주지 않기 위해 Redis 큐에 먼저 저장한 뒤 Scheduler가 audit DB로 이관하는 구조였습니다. 하지만 Redis 장애가 발생하면 감사 로그 이벤트가 저장되지 못하고 유실될 수 있었습니다.
-
-원인 추적: 감사 로그는 보안 추적과 운영 이력 확인에 필요한 데이터이므로, Redis 장애 상황에서도 최소한 원본 이벤트를 남길 수 있어야 한다고 판단했습니다. Redis 저장 실패 시 예외만 남기면 이후 복구나 재처리가 불가능했습니다.
-
-원인: Redis를 감사 로그의 단일 임시 저장소로 사용하면서, Redis 장애 시 대체 저장 경로가 없었던 것이 원인이었습니다.
-
-해결 방법: Redis 저장 실패 시 `audit_fallback_log` 테이블에 `AuditLogEventDTO` 원본을 JSON으로 저장했습니다. 이후 Scheduler가 `processed_at IS NULL`인 fallback 로그를 조회해 정식 `audit_log` 테이블로 재이관하고, 이관 완료 후 `processed_at`을 갱신하도록 구성했습니다.
+Redis 저장 실패 시 `audit_fallback_log`에 `AuditLogEventDTO` 원본을 JSON으로 보관합니다. Redis 접근이 정상화된 뒤 Scheduler가 `processed_at IS NULL`인 fallback 행을 조회해 `audit_log`로 이관하고, 성공한 행에만 `processed_at`을 기록합니다.
 
 ```text
-Redis 장애
+Redis 저장 실패
  -> audit_fallback_log 저장
- -> Redis 복구
- -> Scheduler 실행
+ -> Redis 접근 정상화
+ -> 다음 Scheduler 실행
+ -> fallback 미처리 행 조회
  -> audit_log 이관
  -> processed_at 갱신
 ```
 
-결과: Redis 장애 상황에서도 감사 로그 원본을 보관할 수 있게 되었고, 복구 후 정식 audit DB로 재이관할 수 있는 흐름을 확보했습니다.
+이 fallback은 Redis 저장 실패에 대한 보완입니다. fallback 테이블도 audit DB에 있기 때문에 Redis와 audit DB를 동시에 사용할 수 없는 상황에는 원본 이벤트를 보관하지 못합니다.
 
-배운 점: 비동기 처리 구조에서는 성능뿐 아니라 실패 시 데이터가 어디에 남는지까지 설계해야 한다는 점을 배웠습니다.
+## 10. 성과 및 배운 점
 
-핵심 정리: Redis는 빠른 임시 저장소로 사용하되, 장애 시 RDB fallback을 둬 감사 로그 유실 가능성을 줄였습니다.
+### 10-1. JWT 기반 인증 구조와 토큰 보안 정책 이해
 
-## 11. 성과 및 배운 점
-
-### 11-1. JWT 기반 인증 구조와 토큰 보안 정책 이해
-
-- Access Token과 Refresh Token의 역할을 분리하고, Refresh Token을 HttpOnly Cookie와 DB 해시 저장 방식으로 관리하며 JWT 기반 Stateless 인증 구조의 장단점을 실무적으로 이해했습니다.
+- Access Token과 Refresh Token의 역할을 분리하고, Refresh Token을 HttpOnly Cookie와 DB 해시 방식으로 관리하면서 토큰 저장 위치와 폐기 정책의 필요성을 이해했습니다.
 - 로그아웃, 비밀번호 변경, 휴직/퇴사 처리 시 Refresh Token을 폐기하여 서버 측에서 토큰 재발급을 통제하는 보안 흐름을 학습했습니다.
 
-### 11-2. Spring Security 기반 인증/인가 흐름 설계
+### 10-2. Spring Security 기반 인증/인가 흐름 설계
 
 - 커스텀 로그인 필터, 토큰 검증 필터, Refresh Token 재발급 필터를 구성하며 Spring Security Filter Chain의 동작 원리를 파악했습니다.
 - `@PreAuthorize`와 공통 layout 권한 검사를 함께 적용하여 API 접근 제어와 화면 접근 제어를 분리해 설계하는 방법을 경험했습니다.
 
-### 11-3. 계정 생명주기와 보안 정책 구현 경험
+### 10-3. 계정 생명주기와 보안 정책 구현 경험
 
 - 직원 등록부터 휴직, 복직, 퇴사, 계정 잠금, 비밀번호 재설정까지 이어지는 계정 생명주기 관리 흐름을 구현했습니다.
 - JWT의 Stateless 특성으로 이미 발급된 Access Token을 즉시 삭제하기 어려운 문제를 DB 최신 상태 재검증 방식으로 보완했습니다.
 
-### 11-4. AOP와 Redis 기반 감사 로그 파이프라인 설계
+### 10-4. AOP와 Redis 기반 감사 로그 파이프라인 설계
 
 - 주요 API 요청을 AOP로 감지하고 Redis에 우선 적재한 뒤, Scheduler를 통해 감사 로그 전용 DB로 이관하는 비동기 로그 처리 구조를 구현했습니다.
 - 감사 로그 대상 API를 중앙 정책 Registry로 관리하며 로그 수집 기준을 일관되게 유지하는 설계 방식을 학습했습니다.
 
-### 11-5. 장애 대응과 데이터 유실 방지 관점 습득
+### 10-5. 장애 대응과 데이터 유실 방지 관점 습득
 
 - Redis 저장 실패 시 fallback 테이블에 감사 로그 원본을 저장하고 이후 재이관하는 구조를 구현하며, 장애 상황에서도 데이터 유실 가능성을 줄이는 방식을 경험했습니다.
 - Controller, Service, Repository, DTO 계층을 분리하면서 인증/인가, 계정 보안, 감사 로그 기능을 유지보수 가능한 구조로 정리했습니다.
 
-## 12. 개선 가능성 및 향후 계획
+## 11. 개선 가능성 및 향후 계획
 
-### 12-1. Refresh Token 보안 정책 고도화
+### 11-1. Refresh Token 보안 정책 고도화
 
 - 현재는 DB 해시 저장과 revoke 정책을 통해 Refresh Token을 관리하고 있으나, 향후 기기별 로그인 세션 관리와 토큰 재사용 감지 로직을 추가해 보안성을 강화할 수 있습니다.
 - Refresh Token 탈취 의심 상황이 발생하면 해당 계정의 모든 세션을 폐기하고 관리자에게 알림을 제공하는 구조로 확장할 계획입니다.
 
-### 12-2. 감사 로그 검색 및 모니터링 기능 고도화
+### 11-2. 감사 로그 검색 및 모니터링 기능 고도화
 
 - 현재는 조건 검색과 CSV 추출 중심으로 감사 로그를 제공하고 있으나, 향후 관리자 대시보드에서 이상 행위 패턴을 시각화하는 기능을 추가할 수 있습니다.
 - 로그인 실패 급증, 권한 변경, 대량 CSV 다운로드 같은 보안 이벤트를 실시간 알림으로 연결하는 방향으로 개선할 계획입니다.
 
-### 12-3. 권한 관리 구조 세분화
+### 11-3. 권한 관리 구조 세분화
 
 - 현재는 USER, ADMIN, SUPER 중심의 역할 기반 접근 제어를 적용하고 있으나, 향후 부서별 권한과 기능별 세부 권한을 분리한 Permission 기반 구조로 확장할 수 있습니다.
 - 관리자 권한 변경 이력과 승인 절차를 강화해 기업 환경에 적합한 권한 관리 체계로 고도화할 계획입니다.
 
-## 13. 회고
+## 12. 회고
 
 프로젝트 기간 동안 인증, 권한, 계정 보안, 감사 로그처럼 시스템의 기반이 되는 영역을 담당하며 보안 중심의 백엔드 설계를 경험했습니다.
 
@@ -541,6 +495,6 @@ Redis 장애
 
 또한 휴직이나 퇴사처럼 계정 상태가 변경되었을 때 기존 Access Token을 어떻게 차단할지도 중요한 문제였습니다. JWT Stateless 구조에서는 서버가 이미 발급된 토큰을 직접 삭제하기 어렵지만, TokenCheckFilter에서 매 요청마다 DB의 최신 계정 상태를 재검증하도록 개선하여 실제 업무 요청 시점에 계정 상태 변경을 반영할 수 있었습니다.
 
-감사 로그 기능을 구현하면서는 비즈니스 로직과 로그 수집 로직을 분리하는 설계의 필요성을 배웠습니다. AOP로 주요 API 요청을 감지하고 Redis와 Scheduler를 활용해 감사 로그 전용 DB로 이관하는 구조를 만들며, 성능과 추적 가능성을 함께 고려한 백엔드 설계를 경험했습니다.
+감사 로그 기능을 구현하면서는 비즈니스 로직과 로그 수집 로직을 분리하는 설계의 필요성을 배웠습니다. AOP로 주요 API 요청을 감지하고 Redis와 Scheduler를 활용하면서 요청 처리 경로와 감사 로그 영속화 경로를 나누어 구성했습니다.
 
 이번 프로젝트를 통해 인증과 권한은 단순히 로그인 기능에 머무는 것이 아니라, 계정 상태, 화면 접근, 토큰 폐기, 감사 추적까지 연결되는 하나의 보안 흐름이라는 점을 배웠습니다. 짧은 일정이었지만 시스템의 기반을 책임지는 기능들을 구현하며 백엔드 개발자로서 보안 관점과 안정성에 대한 기준을 한 단계 높일 수 있었습니다.
