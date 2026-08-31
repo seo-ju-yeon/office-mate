@@ -1,0 +1,33 @@
+# Git 및 IDE 설정
+.git
+.idea
+.vscode
+
+# 로컬 빌드 결과와 캐시
+.gradle
+build
+out
+
+# 환경변수 파일
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+
+# 로컬 전용 설정과 인증 파일
+src/main/resources/application-local.properties
+src/main/resources/application-secret.properties
+src/main/resources/credentials.json
+**/client_secret*.json
+tokens
+
+# 로컬 업로드 파일과 로그
+upload
+uploads
+logs
+**/*.log
+
+# macOS 메타데이터
+**/.DS_Store
