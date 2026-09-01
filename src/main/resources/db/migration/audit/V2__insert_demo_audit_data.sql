@@ -1,8 +1,4 @@
--- 파일 목적: 감사 로그 화면 확인용 더미 데이터를 생성한다.
--- 실행 대상 DB: office_mate_audit_log
--- 실행 순서: 5
--- 포함 내용: 로그인/계정/직원/권한/CSV 다운로드/fallback 샘플 감사 로그
--- 주의사항: 포트폴리오 시연과 로컬 화면 확인을 위한 더미 감사 로그만 포함한다.
+-- 감사 로그 조회 화면을 확인할 때 사용하는 예시 데이터
 
 INSERT INTO audit_log (
     trace_id,
@@ -232,8 +228,8 @@ VALUES
     )
 ON CONFLICT DO NOTHING;
 
--- Redis 저장 실패/fallback 재이관 화면 확인용 샘플.
--- processed_at이 NULL이면 아직 audit_log로 이관되지 않은 fallback 로그로 간주한다.
+-- Redis 저장 실패/fallback 재이관 화면 확인용 샘플
+-- processed_at이 NULL이면 아직 audit_log로 이관되지 않은 fallback 로그로 간주
 INSERT INTO audit_fallback_log (
     payload,
     reason,

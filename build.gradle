@@ -44,6 +44,10 @@ dependencies {
     // AOP
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+    // Database Migration
+    implementation 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
     // 동적 query
     // Querydsl 설정
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'

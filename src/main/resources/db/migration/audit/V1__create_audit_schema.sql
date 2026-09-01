@@ -1,8 +1,4 @@
--- 파일 목적: 감사 로그 전용 DB 스키마를 생성한다.
--- 실행 대상 DB: office_mate_audit_log
--- 실행 순서: 3
--- 포함 내용: 감사 로그 테이블, Redis fallback 테이블, 조회용 인덱스
--- 주의사항: 01_init.sql 실행 후 office_mate_audit_log 데이터소스를 선택한 뒤 실행한다.
+-- 프로젝트 종료 후 Flyway를 도입하면서 현재 감사 로그 DB 스키마를 V1으로 등록
 
 CREATE TYPE audit_action AS ENUM (
     'CREATE', -- 데이터 생성

@@ -1,8 +1,4 @@
--- 파일 목적: 메인 업무 DB 스키마를 생성한다.
--- 실행 대상 DB: office_mate_2605
--- 실행 순서: 2
--- 포함 내용: 직원/권한/계정 보안/게시판/일정/채팅/프로젝트/알림/Refresh Token 테이블
--- 주의사항: 01_init.sql 실행 후 office_mate_2605 데이터소스를 선택한 뒤 실행한다.
+-- 프로젝트 종료 후 Flyway를 도입하면서 현재 메인 DB 스키마를 V1으로 등록
 
 CREATE TYPE department_code AS ENUM (
     'FRONTEND', -- 프론트엔드 팀

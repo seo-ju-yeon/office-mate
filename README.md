@@ -319,31 +319,35 @@ src/main/java/office_mate_2605
 ### 사전 준비
 
 - Java 21
-- PostgreSQL
-- Redis
+- Docker Desktop 및 Docker Compose
 - OpenAI API Key
 - Google Calendar API credentials
 
 ### 데이터베이스 준비
 
-SQL 파일은 `src/main/resources/sql` 아래에 있습니다.
+PostgreSQL과 Redis는 Docker Compose로 실행합니다.
 
-```text
-01_init.sql
-02_main_db.sql
-03_audit_db.sql
-04_main_dummy.sql
-05_audit_log_dummy.sql
+```bash
+docker compose up -d postgres redis
 ```
 
-기본 실행 순서는 다음과 같습니다.
+PostgreSQL 컨테이너가 처음 생성될 때 메인 DB와 감사 로그 DB를 생성합니다.
 
 ```text
-1. 01_init.sql
-2. 02_main_db.sql
-3. 03_audit_db.sql
-4. 04_main_dummy.sql
-5. 05_audit_log_dummy.sql
+office_mate_2605
+office_mate_audit_log
+```
+
+각 DB의 스키마와 예시 데이터는 Spring Boot 시작 시 Flyway가 적용합니다.
+
+```text
+src/main/resources/db/migration
+├── main
+│   ├── V1__create_main_schema.sql
+│   └── V2__insert_demo_data.sql
+└── audit
+    ├── V1__create_audit_schema.sql
+    └── V2__insert_demo_audit_data.sql
 ```
 
 ### 환경 설정
@@ -385,7 +389,7 @@ UPLOAD_PATH=C:/upload
 
 Windows 환경에서는 역슬래시 이스케이프 문제를 줄이기 위해 `C:/upload`처럼 슬래시(`/`) 형식으로 작성하는 것을 권장합니다. 실제 업로드 파일은 Git에 포함하지 않으며, `upload/` 또는 `uploads/` 폴더는 `.gitignore`로 제외하는 것이 좋습니다.
 
-Google Calendar 연동을 사용하려면 Google Cloud Console에서 OAuth Client를 생성하고, 로컬 환경에 credentials 파일을 별도로 배치해야 합니다. 실제 credentials 파일은 공개 저장소에 포함하지 않습니다.
+Google Calendar 연동을 사용하려면 Google Cloud Console에서 OAuth Client를 생성하고, 로컬 환경에 credentials 파일을 별도로 배치해야 합니다.
 
 ### 애플리케이션 실행
 
